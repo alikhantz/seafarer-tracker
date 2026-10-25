@@ -77,20 +77,6 @@ function Time24Input({value, onChange, isDark}:{value:string, onChange:(v:string
   );
 }
 
-function createSample(): Record<string, Entry>{
-  const today=new Date(); const monday=getMonday(today);
-  const samples: Record<string, Entry>={};
-  const dates=[addDays(monday,0),addDays(monday,1),addDays(monday,2),addDays(monday,5)];
-  const breakdowns: Breakdown[]=[
-    {deckWork:4,watch:4,standby:1,mooring:0,bunkering:0,provisionDeck:0,provisionEngine:0,provisionGalley:0,garbage:0,cargo:2,drills:1,other:0},
-    {deckWork:3,watch:8,standby:0,mooring:2,bunkering:0,provisionDeck:1,provisionEngine:0,provisionGalley:0,garbage:0,cargo:0,drills:0,other:0},
-    {deckWork:2,watch:4,standby:2,mooring:0,bunkering:3,provisionDeck:0,provisionEngine:1,provisionGalley:0,garbage:1,cargo:0,drills:0,other:0.5},
-    {deckWork:1,watch:6,standby:0,mooring:1.5,bunkering:0,provisionDeck:0,provisionEngine:0,provisionGalley:2,garbage:0.5,cargo:1,drills:2,other:0},
-  ];
-  const metas=[{location:'At Sea' as const,duty:'Watch Duty' as const,watchSlot:'12-4 (00-04 & 12-16)',notes:'Deck maintenance + bridge watch',portName:'',arrivalTime:'',departureTime:''},{location:'At Port' as const,duty:'Regular Work' as const,watchSlot:'4-8 (04-08 & 16-20)',notes:'Mooring at Manila',portName:'Manila, PH',arrivalTime:'06:30',departureTime:'18:45'},{location:'At Port' as const,duty:'Watch Duty' as const,watchSlot:'8-12 (08-12 & 20-00)',notes:'Bunkering, garbage disposal',portName:'Manila, PH',arrivalTime:'',departureTime:'22:10'},{location:'At Sea' as const,duty:'Standby / Extra' as const,watchSlot:'Daywork (06-18)',notes:'Weekend drills',portName:'',arrivalTime:'',departureTime:''}];
-  dates.forEach((d,i)=>{const iso=toISO(d);const b=breakdowns[i];samples[iso]={breakdown:b,totalWork:sumBreakdown(b),location:metas[i].location,duty:metas[i].duty,watchSlot:metas[i].watchSlot,notes:metas[i].notes,portName:metas[i].portName,arrivalTime:metas[i].arrivalTime,departureTime:metas[i].departureTime,date:iso};});
-  return samples;
-}
 type DayOTInfo={type:string;regularHours:number;otHours:number;doubleHours:number;payHours:number;multiplier:number;isHoliday:boolean;isWeekend:boolean;};
 function computeWeekOT(entries: Record<string, Entry>, weekStart: Date, holidaysSet: Set<string>){
   const perDay: Record<string, DayOTInfo>={}; 
@@ -132,11 +118,11 @@ export default function App(){
   const [theme,setTheme]=useState<'dark'|'light'>(()=>{try{const s=localStorage.getItem('seatime-theme'); if(s==='dark'||s==='light') return s as any;}catch{} return 'dark';});
   const [viewDate,setViewDate]=useState(()=>new Date());
   const [seafarerInfo,setSeafarerInfo]=useState<SeafarerInfo>(()=>{try{const s=localStorage.getItem('seatime-seafarer');if(s){const parsed=JSON.parse(s); return {name:parsed.name||'',employeeNo:parsed.employeeNo||'',department:parsed.department||'Deck'};}}catch{}return {name:'',employeeNo:'',department:'Deck'};});
-  const [vesselInfo,setVesselInfo]=useState<VesselInfo>(()=>{try{const s=localStorage.getItem('seatime-vessel');if(s){const parsed=JSON.parse(s); return {name:parsed.name||'MV SEATIME',type:parsed.type||'Container Ship',imo:parsed.imo||'IMO 9734412',flag:parsed.flag||'PANAMA',masterName:parsed.masterName||''};}}catch{}return {name:'MV SEATIME',type:'Container Ship',imo:'IMO 9734412',flag:'PANAMA',masterName:''};});
+  const [vesselInfo,setVesselInfo]=useState<VesselInfo>(()=>{try{const s=localStorage.getItem('seatime-vessel');if(s){const parsed=JSON.parse(s); return {name:parsed.name||'',type:parsed.type||'Container Ship',imo:parsed.imo||'',flag:parsed.flag||'',masterName:parsed.masterName||''};}}catch{}return {name:'',type:'Container Ship',imo:'',flag:'',masterName:''};});
   const [showVesselModal,setShowVesselModal]=useState(false);
   const [summaryView,setSummaryView]=useState<'weekly'|'monthly'>('weekly');
   const [userRank,setUserRank]=useState<Rank>(()=>{try{const s=localStorage.getItem('seatime-rank');if(s)return s as Rank;}catch{}return 'Able Seaman (AB)';});
-  const [entries,setEntries]=useState<Record<string, Entry>>(()=>{try{const s=localStorage.getItem('seatime-entries');if(s)return JSON.parse(s);}catch{}return createSample();});
+  const [entries,setEntries]=useState<Record<string, Entry>>(()=>{try{const s=localStorage.getItem('seatime-entries');if(s)return JSON.parse(s);}catch{}return {};});
   const [selectedISO,setSelectedISO]=useState<string|null>(null);
   const [editing,setEditing]=useState<Entry|null>(null);
   const [now24H,setNow24H]=useState(()=>new Date());
@@ -269,6 +255,16 @@ export default function App(){
               const shareData={title:'SeaTime - Seafarer Tracker',text:'Track work, rest & OT - DMW 40h/week 8h/day Mon-Fri Sat/Sun Auto OT Straight, PH Holiday Double OT, PWA offline, True 24H',url:window.location.href};
               try{if(navigator.share){await navigator.share(shareData);}else if(navigator.clipboard){await navigator.clipboard.writeText(window.location.href); alert('Link copied: '+window.location.href);}else{prompt('Copy link:',window.location.href);}}catch{}
             }} className="text-[11px] bg-[#f97316] text-white rounded-full px-3 py-1.5 font-bold">Share App</button>
+            <button onClick={()=>{
+              if(confirm('Clear ALL data?\n\nThis will delete:\n- All calendar entries\n- Vessel info (Beijing, IMO, Flag, Master)\n- Seafarer info\n\nCannot be undone. Export JSON first if you want backup.')){ 
+                setEntries({}); 
+                setVesselInfo({name:'',type:'Container Ship',imo:'',flag:'',masterName:''}); 
+                setSeafarerInfo({name:'',employeeNo:'',department:'Deck'}); 
+                setUserRank('Able Seaman (AB)' as any); 
+                try{localStorage.removeItem('seatime-entries'); localStorage.removeItem('seatime-vessel'); localStorage.removeItem('seatime-seafarer'); localStorage.removeItem('seatime-rank');}catch{} 
+                alert('All data cleared - blank slate for new users!'); 
+              }
+            }} className="text-[11px] bg-red-500/20 border border-red-500/30 text-red-400 rounded-full px-3 py-1.5 font-bold hover:bg-red-500 hover:text-white">Clear All</button>
             <button onClick={()=>setViewDate(new Date())} className="text-[11px] border border-white/20 rounded-full px-3 py-1.5 text-white">Today</button>
           </div>
         </div>
