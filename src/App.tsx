@@ -270,7 +270,7 @@ export default function App(){
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={()=>setTheme(isDark?'light':'dark')} className="text-[11px] bg-white/10 border border-white/20 rounded-full px-3 py-1.5 text-white font-bold">
+            <button onClick={()=>setTheme(isDark?'light':'dark')} title="Toggle theme" aria-label="Toggle theme" className="text-[11px] bg-white/10 border border-white/20 rounded-full px-3 py-1.5 text-white font-bold">
               {isDark?'☀️ Light':'🌙 Dark'}
             </button>
             <div className="hidden md:flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1.5 text-white"><span className="text-[9px] opacity-60 uppercase">24H</span><span className="text-[12px] font-mono font-bold">{format24H(now24H)}</span></div>
@@ -307,11 +307,11 @@ export default function App(){
 
       <div className={isDark?"bg-[#0b1222] border-b border-white/5":"bg-white border-b border-slate-200"}>
         <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-3 grid grid-cols-2 md:grid-cols-5 gap-3">
-          <div><div className="text-[9px] uppercase opacity-50">Vessel Name</div><button onClick={()=>setShowVesselModal(true)} className={`mt-1 w-full text-left border rounded-[10px] px-3 py-2 text-[12px] font-bold hover:opacity-80 ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.name}</button></div>
-          <div><div className="text-[9px] uppercase opacity-50">Master Name</div><button onClick={()=>setShowVesselModal(true)} className={`mt-1 w-full text-left border rounded-[10px] px-3 py-2 text-[11px] font-bold hover:opacity-80 ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.masterName||'Set Master'}</button></div>
+          <div><div className="text-[9px] uppercase opacity-50">Vessel Name</div><button onClick={()=>setShowVesselModal(true)} title="Set Vessel Info" aria-label="Set Vessel Info" className={`mt-1 w-full text-left border rounded-[10px] px-3 py-2 text-[12px] font-bold hover:opacity-80 ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.name}</button></div>
+          <div><div className="text-[9px] uppercase opacity-50">Master Name</div><button onClick={()=>setShowVesselModal(true)} title="Set Master Name" aria-label="Set Master Name" className={`mt-1 w-full text-left border rounded-[10px] px-3 py-2 text-[11px] font-bold hover:opacity-80 ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.masterName||'Set Master'}</button></div>
           <div><div className="text-[9px] uppercase opacity-50">IMO</div><div className={`mt-1 border rounded-[10px] px-3 py-2 text-[11px] font-mono ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.imo}</div></div>
           <div><div className="text-[9px] uppercase opacity-50">Flag</div><div className={`mt-1 border rounded-[10px] px-3 py-2 text-[11px] ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.flag}</div></div>
-          <div><div className="text-[9px] uppercase opacity-50">Seafarer</div><button onClick={()=>setShowVesselModal(true)} className={`mt-1 w-full text-left border rounded-[10px] px-3 py-2 text-[11px] font-bold hover:opacity-80 ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{seafarerInfo.name||'Set Name'} • {(userRank && userRank.split(' / ')[0]) || 'Select Rank'} • {seafarerInfo.department}</button></div>
+          <div><div className="text-[9px] uppercase opacity-50">Seafarer</div><button onClick={()=>setShowVesselModal(true)} title="Set Seafarer Info" aria-label="Set Seafarer Info" className={`mt-1 w-full text-left border rounded-[10px] px-3 py-2 text-[11px] font-bold hover:opacity-80 ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{seafarerInfo.name||'Set Name'} • {(userRank && userRank.split(' / ')[0]) || 'Select Rank'} • {seafarerInfo.department}</button></div>
         </div>
       </div>
 
@@ -435,8 +435,8 @@ export default function App(){
                 <button onClick={()=>setViewDate(new Date())} className={`text-[10px] border rounded-full px-3 py-1 ${isDark?'bg-white/10 border-white/20':'bg-slate-100 border-slate-200'}`}>TODAY</button>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={()=>setViewDate(new Date(viewDate.getFullYear(),viewDate.getMonth()-1,1))} className={`w-7 h-7 rounded-full flex items-center justify-center ${isDark?'bg-white/10':'bg-slate-100'}`}>‹</button>
-                <button onClick={()=>setViewDate(new Date(viewDate.getFullYear(),viewDate.getMonth()+1,1))} className={`w-7 h-7 rounded-full flex items-center justify-center ${isDark?'bg-white/10':'bg-slate-100'}`}>›</button>
+                <button onClick={()=>setViewDate(new Date(viewDate.getFullYear(),viewDate.getMonth()-1,1))} title="Previous month" aria-label="Previous month" className={`w-7 h-7 rounded-full flex items-center justify-center ${isDark?'bg-white/10':'bg-slate-100'}`}>‹</button>
+                <button onClick={()=>setViewDate(new Date(viewDate.getFullYear(),viewDate.getMonth()+1,1))} title="Next month" aria-label="Next month" className={`w-7 h-7 rounded-full flex items-center justify-center ${isDark?'bg-white/10':'bg-slate-100'}`}>›</button>
               </div>
             </div>
 
@@ -558,7 +558,7 @@ export default function App(){
           <div className={`relative w-full md:max-w-[560px] rounded-t-[24px] md:rounded-[24px] shadow-2xl max-h-[90vh] overflow-auto border ${isDark?'bg-[#121c33] border-white/10':'bg-white border-slate-200'}`}>
             <div className={`sticky top-0 border-b px-6 py-5 flex items-center justify-between ${isDark?'bg-[#121c33] border-white/10':'bg-white border-slate-200'}`}>
               <div><div className="text-[18px] font-bold">🚢 Vessel Information</div><div className="text-[11px] opacity-50">Shown in header & reports • True 24H</div></div>
-              <button onClick={()=>setShowVesselModal(false)} className={`w-8 h-8 rounded-full flex items-center justify-center ${isDark?'bg-white/10':'bg-slate-100'}`}>✕</button>
+              <button onClick={()=>setShowVesselModal(false)} title="Close" aria-label="Close vessel info" className={`w-8 h-8 rounded-full flex items-center justify-center ${isDark?'bg-white/10':'bg-slate-100'}`}>✕</button>
             </div>
             <div className="p-6 space-y-4">
               <div className={`border rounded-[12px] p-4 ${isDark?'bg-orange-950/20 border-orange-500/20':'bg-orange-50 border-orange-200'}`}>
@@ -604,7 +604,7 @@ export default function App(){
                   <select value={editing.watchSlot} onChange={e=>setEditing({...editing,watchSlot:e.target.value})} className="bg-[#f97316] text-white rounded-full px-3 py-1.5 text-[12px] font-semibold max-w-[180px]">{WATCH_SLOTS.map(s=><option key={s} value={s} className="text-black">{s}</option>)}</select>
                 </div>
               </div>
-              <button onClick={()=>{setSelectedISO(null);setEditing(null);}} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white">✕</button>
+              <button onClick={()=>{setSelectedISO(null);setEditing(null);}} title="Close" aria-label="Close" className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white">✕</button>
             </div>
             <div className="flex-1 overflow-auto">
               <div className="px-7 py-5">
@@ -620,7 +620,7 @@ export default function App(){
                         <div className="mt-3 flex items-center justify-between gap-2 bg-black/5 dark:bg-white/5 rounded-full px-2 py-1.5">
                           <button onClick={()=>updateBreakdown(f.key,-0.5)} className={`w-8 h-8 rounded-full flex items-center justify-center text-[16px] font-bold shrink-0 transition active:scale-95 ${isDark?'bg-white/10 hover:bg-white/20 text-white':'bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 shadow-sm'}`}>−</button>
                           <input type="number" step="0.5" value={val} onChange={e=>setBreakdownValue(f.key,parseFloat(e.target.value))} className={`flex-1 bg-transparent text-center font-bold text-[18px] outline-none min-w-0 ${isDark?'text-white':'text-slate-900'}`} />
-                          <button onClick={()=>updateBreakdown(f.key,0.5)} className="w-8 h-8 rounded-full bg-[#f97316] text-white flex items-center justify-center text-[16px] font-bold shrink-0 shadow-md hover:bg-[#ea6d12] transition active:scale-95">+</button>
+                          <button onClick={()=>updateBreakdown(f.key,0.5)} title="Increase" aria-label="Increase hours" className="w-8 h-8 rounded-full bg-[#f97316] text-white flex items-center justify-center text-[16px] font-bold shrink-0 shadow-md hover:bg-[#ea6d12] transition active:scale-95">+</button>
                         </div>
                       </div>
                     );
