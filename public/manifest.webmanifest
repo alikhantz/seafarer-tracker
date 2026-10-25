@@ -1,13 +1,30 @@
 {
-  "name": "SeaTime - Seafarer Work & Rest Tracker",
+  "name": "SeaTime - Seafarer Tracker",
   "short_name": "SeaTime",
-  "description": "DMW 40h/week, PH Holiday OT, Port Watch Double OT tracker",
+  "description": "Seafarer Work & Rest Tracker - True 24H - DMW OT Rules - Offline First - (c) 2026 SeaTime-Alikhantz",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "background_color": "#070e1f",
+  "theme_color": "#f97316",
+  "orientation": "portrait",
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

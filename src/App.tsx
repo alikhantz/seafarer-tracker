@@ -28,10 +28,55 @@ const RANKS: { label: string, dept: 'Deck'|'Engine'|'Catering', icon: string }[]
   { label: 'Chief Engineer', dept: 'Engine', icon: '⚙️' },{ label: 'Second Engineer', dept: 'Engine', icon: '🔧' },{ label: 'Third Engineer', dept: 'Engine', icon: '🔩' },{ label: 'Fourth Engineer', dept: 'Engine', icon: '🛠️' },{ label: 'Electrical Officer (ETO)', dept: 'Engine', icon: '💡' },{ label: 'Fitter', dept: 'Engine', icon: '🔨' },{ label: 'Oiler / Motorman', dept: 'Engine', icon: '⛽' },{ label: 'Wiper', dept: 'Engine', icon: '🧹' },{ label: 'Engine Cadet', dept: 'Engine', icon: '🎓' },
   { label: 'Chief Steward', dept: 'Catering', icon: '👨‍🍳' },{ label: 'Chief Cook', dept: 'Catering', icon: '🍳' },{ label: 'Second Cook', dept: 'Catering', icon: '🥘' },{ label: 'Messman', dept: 'Catering', icon: '🍽️' },{ label: 'Steward / Utility', dept: 'Catering', icon: '🧼' },
 ];
-const BREAKDOWN_FIELDS: { key: keyof Breakdown; label: string; short: string; icon: string; }[] = [
-  { key: 'deckWork', label: 'Deck Work', short: 'Deck Work', icon: '🛠️' },{ key: 'watch', label: 'Watch Duty', short: 'Watch Duty', icon: '👁️' },{ key: 'standby', label: 'Standby / Extra', short: 'Standby', icon: '⏳' },{ key: 'mooring', label: 'Mooring / Unmooring', short: 'Mooring', icon: '⚓' },{ key: 'bunkering', label: 'Bunkering', short: 'Bunkering', icon: '⛽' },{ key: 'provisionDeck', label: 'Deck Store', short: 'Deck Store', icon: '📦' },{ key: 'provisionEngine', label: 'Engine Store', short: 'Engine Store', icon: '🔧' },{ key: 'provisionGalley', label: 'Galley Store/Provision', short: 'Galley Store/Provision', icon: '🍳' },{ key: 'garbage', label: 'Garbage Disposal', short: 'Garbage', icon: '♻️' },{ key: 'cargo', label: 'Cargo Operations', short: 'Cargo', icon: '📋' },{ key: 'drills', label: 'Drills & Training', short: 'Drills', icon: '🚨' },{ key: 'other', label: 'Other Tasks', short: 'Other', icon: '➕' },
+
+const BinocularIcon = () => (
+  <svg width="22" height="15" viewBox="0 0 32 16" xmlns="http://www.w3.org/2000/svg" className="inline-block">
+    <defs>
+      <radialGradient id="lensBlue" cx="0.35" cy="0.3" r="0.7">
+        <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.9"/>
+        <stop offset="25%" stopColor="#3b82f6" stopOpacity="0.6"/>
+        <stop offset="70%" stopColor="#1e40af" stopOpacity="0.3"/>
+        <stop offset="100%" stopColor="#0f172a" stopOpacity="0.2"/>
+      </radialGradient>
+      <radialGradient id="lensGlare" cx="0.3" cy="0.25" r="0.5">
+        <stop offset="0%" stopColor="white" stopOpacity="0.95"/>
+        <stop offset="40%" stopColor="white" stopOpacity="0.3"/>
+        <stop offset="100%" stopColor="white" stopOpacity="0"/>
+      </radialGradient>
+    </defs>
+    {/* Left barrel - armored */}
+    <g>
+      <rect x="0.5" y="1.5" width="11" height="13" rx="4.2" fill="#0f172a" stroke="#1e293b" strokeWidth="0.6"/>
+      <rect x="0.5" y="1.5" width="11" height="13" rx="4.2" fill="white" opacity="0.04"/>
+      {/* Objective lens outer ring - orange accent */}
+      <circle cx="6" cy="8" r="4.8" fill="none" stroke="#f97316" strokeWidth="0.9" opacity="0.9"/>
+      <circle cx="6" cy="8" r="4" fill="url(#lensBlue)" stroke="#1e3a8a" strokeWidth="0.5"/>
+      <circle cx="6" cy="8" r="3.2" fill="#1e3a8a" opacity="0.15"/>
+      <circle cx="5.1" cy="6.3" r="1.1" fill="url(#lensGlare)"/>
+    </g>
+    {/* Right barrel */}
+    <g>
+      <rect x="20.5" y="1.5" width="11" height="13" rx="4.2" fill="#0f172a" stroke="#1e293b" strokeWidth="0.6"/>
+      <rect x="20.5" y="1.5" width="11" height="13" rx="4.2" fill="white" opacity="0.04"/>
+      <circle cx="26" cy="8" r="4.8" fill="none" stroke="#f97316" strokeWidth="0.9" opacity="0.9"/>
+      <circle cx="26" cy="8" r="4" fill="url(#lensBlue)" stroke="#1e3a8a" strokeWidth="0.5"/>
+      <circle cx="26" cy="8" r="3.2" fill="#1e3a8a" opacity="0.15"/>
+      <circle cx="25.1" cy="6.3" r="1.1" fill="url(#lensGlare)"/>
+    </g>
+    {/* Center bridge */}
+    <g>
+      <rect x="12" y="4.5" width="8" height="3.2" rx="1.3" fill="#1e293b" stroke="#334155" strokeWidth="0.4"/>
+      <rect x="14.5" y="2.8" width="3" height="2.2" rx="0.8" fill="#334155"/>
+      <rect x="13" y="8.8" width="6" height="2.4" rx="1" fill="#0f172a" stroke="#334155" strokeWidth="0.4"/>
+      <circle cx="16" cy="10" r="1" fill="#475569"/>
+    </g>
+  </svg>
+);
+
+const BREAKDOWN_FIELDS: { key: keyof Breakdown; label: string; short: string; icon: React.ReactNode; }[] = [
+  { key: 'deckWork', label: 'Deck Work', short: 'Deck Work', icon: '🛠️' },{ key: 'watch', label: 'Watch Duty', short: 'Watch Duty', icon: <BinocularIcon /> },{ key: 'standby', label: 'Standby / Extra', short: 'Standby', icon: '⏳' },{ key: 'mooring', label: 'Mooring / Unmooring', short: 'Mooring', icon: '⚓' },{ key: 'bunkering', label: 'Bunkering', short: 'Bunkering', icon: '⛽' },{ key: 'provisionDeck', label: 'Deck Store', short: 'Deck Store', icon: '📦' },{ key: 'provisionEngine', label: 'Engine Store', short: 'Engine Store', icon: '🔧' },{ key: 'provisionGalley', label: 'Galley Store/Provision', short: 'Galley Store/Provision', icon: '🍳' },{ key: 'garbage', label: 'Garbage Disposal', short: 'Garbage', icon: '♻️' },{ key: 'cargo', label: 'Cargo Operations', short: 'Cargo', icon: '📋' },{ key: 'drills', label: 'Drills & Training', short: 'Drills', icon: '🚨' },{ key: 'other', label: 'Other Tasks', short: 'Other', icon: '➕' },
 ];
-const WATCH_SLOTS = ['12-4 (00-04 & 12-16)','4-8 (04-08 & 16-20)','8-12 (08-12 & 20-00)','12-6 (00-06 & 12-18)','6-12 (06-12 & 18-00)','Daywork (06-18)','No Watch'];
+const WATCH_SLOTS = ['12-4 (00-04 & 12-16)','4-8 (04-08 & 16-20)','8-12 (08-12 & 20-00)','12-6 (00-06 & 12-18)','6-12 (06-12 & 18-00)','Daywork (06-18)','No Watch/Work'];
 // DMW Contract Holidays - 10 Regular Holidays (Eid'l removed per user request)
 // All Saints' Day NOT included - Special Non-Working only
 const PH_HOLIDAYS_2026 = [
@@ -72,22 +117,6 @@ function Time24Input({value, onChange, isDark}:{value:string, onChange:(v:string
         <option value="">--</option>
         {Array.from({length:60}).map((_,i)=><option key={i} value={String(i).padStart(2,'0')} className="text-black">{String(i).padStart(2,'0')}</option>)}
       </select>
-      <span className="text-[10px] text-orange-400 font-bold ml-1">24H</span>
-
-      <footer className="bg-[#070e1f] border-t border-white/10 mt-8">
-        <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-3">
-          <div className="text-[11px] text-center md:text-left">
-            <div className="font-bold text-white text-[12px]">© 2026 SeaTime-Alikhantz — Seafarer Tracker</div>
-            <div className="mt-1.5 text-[10px] text-white/70">Developed by Alikhantz • All Rights Reserved • DMW OT Rules • True 24H • PWA Offline-First</div>
-          </div>
-          <div className="flex items-center gap-2 text-[10px] opacity-50">
-            <span className="border border-white/10 rounded-full px-3 py-1">v1.0 • 2026</span>
-            <span className="border border-white/10 rounded-full px-3 py-1">© All Rights Reserved</span>
-            <a href="https://github.com/alikhantz/seafarer-tracker" target="_blank" className="border border-white/10 rounded-full px-3 py-1 hover:bg-white/10">GitHub</a>
-          </div>
-        </div>
-      </footer>
-
     </div>
   );
 }
