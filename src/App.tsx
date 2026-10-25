@@ -76,9 +76,9 @@ function Time24Input({value, onChange, isDark}:{value:string, onChange:(v:string
 
       <footer className="bg-[#070e1f] border-t border-white/10 mt-8">
         <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-3">
-          <div className="text-[11px] opacity-60 text-center md:text-left">
-            <div className="font-bold text-white">© 2026 SeaTime-Alikhantz — Seafarer Tracker</div>
-            <div className="mt-1 text-[10px]">Developed by Alikhantz • All Rights Reserved • DMW OT Rules • True 24H • PWA Offline-First</div>
+          <div className="text-[11px] text-center md:text-left">
+            <div className="font-bold text-white text-[12px]">© 2026 SeaTime-Alikhantz — Seafarer Tracker</div>
+            <div className="mt-1.5 text-[10px] text-white/70">Developed by Alikhantz • All Rights Reserved • DMW OT Rules • True 24H • PWA Offline-First</div>
           </div>
           <div className="flex items-center gap-2 text-[10px] opacity-50">
             <span className="border border-white/10 rounded-full px-3 py-1">v1.0 • 2026</span>
@@ -633,9 +633,9 @@ export default function App(){
 
       <footer className="bg-[#070e1f] border-t border-white/10 mt-8">
         <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-3">
-          <div className="text-[11px] opacity-60 text-center md:text-left">
-            <div className="font-bold text-white">© 2026 SeaTime-Alikhantz — Seafarer Tracker</div>
-            <div className="mt-1 text-[10px]">Developed by Alikhantz • All Rights Reserved • DMW OT Rules • True 24H • PWA Offline-First</div>
+          <div className="text-[11px] text-center md:text-left">
+            <div className="font-bold text-white text-[12px]">© 2026 SeaTime-Alikhantz — Seafarer Tracker</div>
+            <div className="mt-1.5 text-[10px] text-white/70">Developed by Alikhantz • All Rights Reserved • DMW OT Rules • True 24H • PWA Offline-First</div>
           </div>
           <div className="flex items-center gap-2 text-[10px] opacity-50">
             <span className="border border-white/10 rounded-full px-3 py-1">v1.0 • 2026</span>
