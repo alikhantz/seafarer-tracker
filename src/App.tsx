@@ -29,7 +29,7 @@ const RANKS: { label: string, dept: 'Deck'|'Engine'|'Catering', icon: string }[]
   { label: 'Chief Steward', dept: 'Catering', icon: '👨‍🍳' },{ label: 'Chief Cook', dept: 'Catering', icon: '🍳' },{ label: 'Second Cook', dept: 'Catering', icon: '🥘' },{ label: 'Messman', dept: 'Catering', icon: '🍽️' },{ label: 'Steward / Utility', dept: 'Catering', icon: '🧼' },
 ];
 const BREAKDOWN_FIELDS: { key: keyof Breakdown; label: string; short: string; icon: string; }[] = [
-  { key: 'deckWork', label: 'Deck Work', short: 'Deck Work', icon: '🛠️' },{ key: 'watch', label: 'Watch Duty', short: 'Watch Duty', icon: '👁️' },{ key: 'standby', label: 'Standby / Extra', short: 'Standby', icon: '⏳' },{ key: 'mooring', label: 'Mooring / Unmooring', short: 'Mooring', icon: '⚓' },{ key: 'bunkering', label: 'Bunkering', short: 'Bunkering', icon: '⛽' },{ key: 'provisionDeck', label: 'Provision - Deck', short: 'Provision Deck', icon: '📦' },{ key: 'provisionEngine', label: 'Provision - Engine', short: 'Provision Engine', icon: '🔧' },{ key: 'provisionGalley', label: 'Provision - Galley', short: 'Provision Galley', icon: '🍳' },{ key: 'garbage', label: 'Garbage Disposal', short: 'Garbage', icon: '♻️' },{ key: 'cargo', label: 'Cargo Operations', short: 'Cargo', icon: '📋' },{ key: 'drills', label: 'Drills & Training', short: 'Drills', icon: '🚨' },{ key: 'other', label: 'Other Tasks', short: 'Other', icon: '➕' },
+  { key: 'deckWork', label: 'Deck Work', short: 'Deck Work', icon: '🛠️' },{ key: 'watch', label: 'Watch Duty', short: 'Watch Duty', icon: '👁️' },{ key: 'standby', label: 'Standby / Extra', short: 'Standby', icon: '⏳' },{ key: 'mooring', label: 'Mooring / Unmooring', short: 'Mooring', icon: '⚓' },{ key: 'bunkering', label: 'Bunkering', short: 'Bunkering', icon: '⛽' },{ key: 'provisionDeck', label: 'Deck Store', short: 'Deck Store', icon: '📦' },{ key: 'provisionEngine', label: 'Engine Store', short: 'Engine Store', icon: '🔧' },{ key: 'provisionGalley', label: 'Galley Store/Provision', short: 'Galley Store/Provision', icon: '🍳' },{ key: 'garbage', label: 'Garbage Disposal', short: 'Garbage', icon: '♻️' },{ key: 'cargo', label: 'Cargo Operations', short: 'Cargo', icon: '📋' },{ key: 'drills', label: 'Drills & Training', short: 'Drills', icon: '🚨' },{ key: 'other', label: 'Other Tasks', short: 'Other', icon: '➕' },
 ];
 const WATCH_SLOTS = ['12-4 (00-04 & 12-16)','4-8 (04-08 & 16-20)','8-12 (08-12 & 20-00)','12-6 (00-06 & 12-18)','6-12 (06-12 & 18-00)','Daywork (06-18)','No Watch'];
 // DMW Contract Holidays - 10 Regular Holidays (Eid'l removed per user request)
@@ -73,6 +73,21 @@ function Time24Input({value, onChange, isDark}:{value:string, onChange:(v:string
         {Array.from({length:60}).map((_,i)=><option key={i} value={String(i).padStart(2,'0')} className="text-black">{String(i).padStart(2,'0')}</option>)}
       </select>
       <span className="text-[10px] text-orange-400 font-bold ml-1">24H</span>
+
+      <footer className="bg-[#070e1f] border-t border-white/10 mt-8">
+        <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="text-[11px] opacity-60 text-center md:text-left">
+            <div className="font-bold text-white">© 2026 SeaTime-Alikhantz — Seafarer Tracker</div>
+            <div className="mt-1 text-[10px]">Developed by Alikhantz • All Rights Reserved • DMW OT Rules • True 24H • PWA Offline-First</div>
+          </div>
+          <div className="flex items-center gap-2 text-[10px] opacity-50">
+            <span className="border border-white/10 rounded-full px-3 py-1">v1.0 • 2026</span>
+            <span className="border border-white/10 rounded-full px-3 py-1">© All Rights Reserved</span>
+            <a href="https://github.com/alikhantz/seafarer-tracker" target="_blank" className="border border-white/10 rounded-full px-3 py-1 hover:bg-white/10">GitHub</a>
+          </div>
+        </div>
+      </footer>
+
     </div>
   );
 }
@@ -118,10 +133,10 @@ export default function App(){
   const [theme,setTheme]=useState<'dark'|'light'>(()=>{try{const s=localStorage.getItem('seatime-theme'); if(s==='dark'||s==='light') return s as any;}catch{} return 'dark';});
   const [viewDate,setViewDate]=useState(()=>new Date());
   const [seafarerInfo,setSeafarerInfo]=useState<SeafarerInfo>(()=>{try{const s=localStorage.getItem('seatime-seafarer');if(s){const parsed=JSON.parse(s); return {name:parsed.name||'',employeeNo:parsed.employeeNo||'',department:parsed.department||'Deck'};}}catch{}return {name:'',employeeNo:'',department:'Deck'};});
-  const [vesselInfo,setVesselInfo]=useState<VesselInfo>(()=>{try{const s=localStorage.getItem('seatime-vessel');if(s){const parsed=JSON.parse(s); return {name:parsed.name||'',type:parsed.type||'Container Ship',imo:parsed.imo||'',flag:parsed.flag||'',masterName:parsed.masterName||''};}}catch{}return {name:'',type:'Container Ship',imo:'',flag:'',masterName:''};});
+  const [vesselInfo,setVesselInfo]=useState<VesselInfo>(()=>{try{const s=localStorage.getItem('seatime-vessel');if(s){const parsed=JSON.parse(s); return {name:parsed.name||'',type:parsed.type||'',imo:parsed.imo||'',flag:parsed.flag||'',masterName:parsed.masterName||''};}}catch{}return {name:'',type:'',imo:'',flag:'',masterName:''};});
   const [showVesselModal,setShowVesselModal]=useState(false);
   const [summaryView,setSummaryView]=useState<'weekly'|'monthly'>('weekly');
-  const [userRank,setUserRank]=useState<Rank>(()=>{try{const s=localStorage.getItem('seatime-rank');if(s)return s as Rank;}catch{}return 'Able Seaman (AB)';});
+  const [userRank,setUserRank]=useState<Rank>(()=>{try{const s=localStorage.getItem('seatime-rank');if(s)return s as Rank;}catch{}return '' as Rank;});
   const [entries,setEntries]=useState<Record<string, Entry>>(()=>{try{const s=localStorage.getItem('seatime-entries');if(s)return JSON.parse(s);}catch{}return {};});
   const [selectedISO,setSelectedISO]=useState<string|null>(null);
   const [editing,setEditing]=useState<Entry|null>(null);
@@ -235,8 +250,8 @@ export default function App(){
               const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
               const url=URL.createObjectURL(blob);
               const a=document.createElement('a'); a.href=url; a.download=`seatime-${toISO(new Date())}.json`; a.click(); URL.revokeObjectURL(url);
-            }} className="hidden md:flex text-[11px] bg-white/10 border border-white/20 rounded-full px-3 py-1.5 text-white">Export JSON</button>
-            <label className="hidden md:flex text-[11px] bg-white/10 border border-white/20 rounded-full px-3 py-1.5 cursor-pointer text-white">Import JSON<input type="file" accept=".json" className="hidden" onChange={e=>{
+            }} className="text-[11px] bg-white/10 border border-white/20 rounded-full px-3 py-1.5 text-white">Export JSON</button>
+            <label className="text-[11px] bg-white/10 border border-white/20 rounded-full px-3 py-1.5 cursor-pointer text-white">Import JSON<input type="file" accept=".json" className="hidden" onChange={e=>{
               const file=e.target.files?.[0]; if(!file) return;
               const reader=new FileReader();
               reader.onload=ev=>{
@@ -255,16 +270,7 @@ export default function App(){
               const shareData={title:'SeaTime - Seafarer Tracker',text:'Track work, rest & OT - DMW 40h/week 8h/day Mon-Fri Sat/Sun Auto OT Straight, PH Holiday Double OT, PWA offline, True 24H',url:window.location.href};
               try{if(navigator.share){await navigator.share(shareData);}else if(navigator.clipboard){await navigator.clipboard.writeText(window.location.href); alert('Link copied: '+window.location.href);}else{prompt('Copy link:',window.location.href);}}catch{}
             }} className="text-[11px] bg-[#f97316] text-white rounded-full px-3 py-1.5 font-bold">Share App</button>
-            <button onClick={()=>{
-              if(confirm('Clear ALL data?\n\nThis will delete:\n- All calendar entries\n- Vessel info (Beijing, IMO, Flag, Master)\n- Seafarer info\n\nCannot be undone. Export JSON first if you want backup.')){ 
-                setEntries({}); 
-                setVesselInfo({name:'',type:'Container Ship',imo:'',flag:'',masterName:''}); 
-                setSeafarerInfo({name:'',employeeNo:'',department:'Deck'}); 
-                setUserRank('Able Seaman (AB)' as any); 
-                try{localStorage.removeItem('seatime-entries'); localStorage.removeItem('seatime-vessel'); localStorage.removeItem('seatime-seafarer'); localStorage.removeItem('seatime-rank');}catch{} 
-                alert('All data cleared - blank slate for new users!'); 
-              }
-            }} className="text-[11px] bg-red-500/20 border border-red-500/30 text-red-400 rounded-full px-3 py-1.5 font-bold hover:bg-red-500 hover:text-white">Clear All</button>
+            <button onClick={()=>{if(window.confirm('Clear ALL data? Export JSON first!')){ setEntries({}); setVesselInfo({name:'',type:'',imo:'',flag:'',masterName:''}); setSeafarerInfo({name:'',employeeNo:'',department:'Deck'}); setUserRank('' as any); try{localStorage.removeItem('seatime-entries'); localStorage.removeItem('seatime-vessel'); localStorage.removeItem('seatime-seafarer'); localStorage.removeItem('seatime-rank');}catch{} alert('All data cleared!'); }}} className="text-[11px] bg-red-500/20 border border-red-500/30 text-red-400 rounded-full px-3 py-1.5 font-bold hover:bg-red-500 hover:text-white">Clear All</button>
             <button onClick={()=>setViewDate(new Date())} className="text-[11px] border border-white/20 rounded-full px-3 py-1.5 text-white">Today</button>
           </div>
         </div>
@@ -276,7 +282,7 @@ export default function App(){
           <div><div className="text-[9px] uppercase opacity-50">Master Name</div><button onClick={()=>setShowVesselModal(true)} className={`mt-1 w-full text-left border rounded-[10px] px-3 py-2 text-[11px] font-bold hover:opacity-80 ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.masterName||'Set Master'}</button></div>
           <div><div className="text-[9px] uppercase opacity-50">IMO</div><div className={`mt-1 border rounded-[10px] px-3 py-2 text-[11px] font-mono ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.imo}</div></div>
           <div><div className="text-[9px] uppercase opacity-50">Flag</div><div className={`mt-1 border rounded-[10px] px-3 py-2 text-[11px] ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.flag}</div></div>
-          <div><div className="text-[9px] uppercase opacity-50">Seafarer</div><button onClick={()=>setShowVesselModal(true)} className={`mt-1 w-full text-left border rounded-[10px] px-3 py-2 text-[11px] font-bold hover:opacity-80 ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{seafarerInfo.name||'Set Name'} • {userRank.split(' / ')[0]} • {seafarerInfo.department}</button></div>
+          <div><div className="text-[9px] uppercase opacity-50">Seafarer</div><button onClick={()=>setShowVesselModal(true)} className={`mt-1 w-full text-left border rounded-[10px] px-3 py-2 text-[11px] font-bold hover:opacity-80 ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{seafarerInfo.name||'Set Name'} • {(userRank && userRank.split(' / ')[0]) || 'Select Rank'} • {seafarerInfo.department}</button></div>
         </div>
       </div>
 
@@ -624,6 +630,21 @@ export default function App(){
           </div>
         </div>
       )}
+
+      <footer className="bg-[#070e1f] border-t border-white/10 mt-8">
+        <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="text-[11px] opacity-60 text-center md:text-left">
+            <div className="font-bold text-white">© 2026 SeaTime-Alikhantz — Seafarer Tracker</div>
+            <div className="mt-1 text-[10px]">Developed by Alikhantz • All Rights Reserved • DMW OT Rules • True 24H • PWA Offline-First</div>
+          </div>
+          <div className="flex items-center gap-2 text-[10px] opacity-50">
+            <span className="border border-white/10 rounded-full px-3 py-1">v1.0 • 2026</span>
+            <span className="border border-white/10 rounded-full px-3 py-1">© All Rights Reserved</span>
+            <a href="https://github.com/alikhantz/seafarer-tracker" target="_blank" className="border border-white/10 rounded-full px-3 py-1 hover:bg-white/10">GitHub</a>
+          </div>
+        </div>
+      </footer>
+
     </div>
   );
 }
