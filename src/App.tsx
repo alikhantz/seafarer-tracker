@@ -495,7 +495,7 @@ export default function App(){
 
       <div className="flex items-center gap-2">
         <button onClick={()=>setTheme(isDark?'light':'dark')} className="text-[11px] bg-white/10 border border-white/20 rounded-full px-3 py-1.5 cursor-pointer text-white font-bold">
-          {isDark?'☀️ Light':'🌙 Dark'}
+          {isDark?'🌙 Dark':'☀️ Light'}
         </button>
       </div>
     </div>
