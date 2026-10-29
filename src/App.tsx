@@ -30,7 +30,8 @@ const fontLinks = `
 `;
 
 type Breakdown = {
-  deckWork: number; watch: number; standby: number; mooring: number; bunkering: number;
+  deckWork: number; engineWork: number; watch: number; bridgeLookout: number; engineWatch: number;
+  standby: number; mooring: number; bunkering: number;
   provisionDeck: number; provisionEngine: number; provisionGalley: number;
   garbage: number; cargo: number; drills: number; other: number;
   galleyWork: number; cooking: number; messService: number;
@@ -50,31 +51,42 @@ type TimeSettings = { gmtOffset: number; shipTimeEnabled: boolean; label: string
 const VESSEL_TYPES = ['','Container Ship','Bulk Carrier','Oil Tanker','Chemical Tanker','LNG Carrier','LPG Carrier','General Cargo','Ro-Ro / Vehicle Carrier','Passenger / Cruise','Offshore Supply Vessel','Tug Boat','Fishing Vessel','Other'];
 const FLAG_REGISTRIES = ['','Panama','Liberia','Marshall Islands','Hong Kong','Singapore','Malta','Bahamas','Greece','Japan','China','Philippines','USA','UK','Norway','Denmark','Germany','Italy','South Korea','Cyprus','Isle of Man','Other'];
 const RANKS: { label: string, dept: 'Deck'|'Engine'|'Galley', icon: string }[] = [
-  { label: 'Master / Captain', dept: 'Deck', icon: '👨‍✈️' },{ label: 'Chief Mate / Chief Officer', dept: 'Deck', icon: '🧭' },{ label: 'Second Mate / Second Officer', dept: 'Deck', icon: '🗺️' },{ label: 'Third Mate / Third Officer', dept: 'Deck', icon: '📡' },{ label: 'Deck Cadet', dept: 'Deck', icon: '🎓' },{ label: 'Bosun / Boatswain', dept: 'Deck', icon: '⚓' },{ label: 'Able Seaman (AB)', dept: 'Deck', icon: '🪢' },{ label: 'Ordinary Seaman (OS)', dept: 'Deck', icon: '🌊' },
+  { label: 'Master / Captain', dept: 'Deck', icon: '👨‍✈️' },{ label: 'Chief Mate / Chief Officer', dept: 'Deck', icon: '🧭' },{ label: 'Second Mate / Second Officer', dept: 'Deck', icon: '🗺️' },{ label: 'Third Mate / Third Officer', dept: 'Deck', icon: '📡' },{ label: 'Deck Cadet', dept: 'Deck', icon: '🎓' },{ label: 'Bosun / Boatswain', dept: 'Deck', icon: '🪢' },{ label: 'Able Seaman (AB)', dept: 'Deck', icon: '🛞' },{ label: 'Ordinary Seaman (OS)', dept: 'Deck', icon: '⚓' },
   { label: 'Chief Engineer', dept: 'Engine', icon: '⚙️' },{ label: 'Second Engineer', dept: 'Engine', icon: '🔧' },{ label: 'Third Engineer', dept: 'Engine', icon: '🔩' },{ label: 'Fourth Engineer', dept: 'Engine', icon: '🛠️' },{ label: 'Electrical Officer (ETO)', dept: 'Engine', icon: '💡' },{ label: 'Fitter', dept: 'Engine', icon: '🔨' },{ label: 'Oiler / Motorman', dept: 'Engine', icon: '⛽' },{ label: 'Wiper', dept: 'Engine', icon: '🧹' },{ label: 'Engine Cadet', dept: 'Engine', icon: '🎓' },
   { label: 'Chief Steward', dept: 'Galley', icon: '👨‍🍳' },{ label: 'Chief Cook', dept: 'Galley', icon: '🍳' },{ label: 'Second Cook', dept: 'Galley', icon: '🥘' },{ label: 'Messman', dept: 'Galley', icon: '🍽️' },{ label: 'Steward / Utility', dept: 'Galley', icon: '🧼' },
 ];
-const BREAKDOWN_FIELDS: { key: keyof Breakdown; label: string; short: string; icon: string; }[] = [
-  // Row 1
-  { key: 'deckWork', label: 'Deck/Engine Work', short: 'Deck Work', icon: '🛠️' },
-  { key: 'watch', label: 'Watch Duty', short: 'Watch Duty', icon: '🔭' },
-  { key: 'galleyWork', label: 'Galley Work', short: 'Galley Work', icon: '🍳' },
-  // Row 2
-  { key: 'mooring', label: 'Mooring / Unmooring', short: 'Mooring', icon: '⚓' },
-  { key: 'bunkering', label: 'Bunkering', short: 'Bunkering', icon: '⛽' },
-  { key: 'cooking', label: 'Cooking / Food Prep', short: 'Cooking', icon: '🥘' },
-  // Row 3
-  { key: 'provisionDeck', label: 'Deck Store', short: 'Deck Store', icon: '📦' },
-  { key: 'provisionEngine', label: 'Engine Store', short: 'Engine Store', icon: '🔧' },
-  { key: 'messService', label: 'Mess Service / Cleaning', short: 'Mess Service', icon: '🍽️' },
-  // Row 4
-  { key: 'provisionGalley', label: 'Galley Store/Provision', short: 'Galley Store', icon: '🧑‍🍳' },
-  { key: 'garbage', label: 'Garbage Disposal', short: 'Garbage', icon: '♻️' },
-  { key: 'standby', label: 'Standby / Extra', short: 'Standby', icon: '⏳' },
-  // Added missing breakdown keys previously tracked but not rendered
-  { key: 'cargo', label: 'Cargo Operations', short: 'Cargo', icon: '📦' },
-  { key: 'drills', label: 'Drills / Training', short: 'Drills', icon: '🛟' },
-  { key: 'other', label: 'Other Duties', short: 'Other', icon: '🔧' },
+const BREAKDOWN_FIELDS: { key: keyof Breakdown; label: string; short: string; icon: string; tab: 'deck'|'engine'|'galley'|'drills'|'others'; }[] = [
+  // Deck Department
+  { key: 'deckWork', label: 'Deck Work', short: 'Deck Work', icon: '🛠️', tab: 'deck' },
+  { key: 'watch', label: 'Watch Duty', short: 'Watch', icon: '👀', tab: 'deck' },
+  { key: 'bridgeLookout', label: 'Bridge Lookout', short: 'Bridge Lookout', icon: '🔭', tab: 'deck' },
+  { key: 'mooring', label: 'Mooring / Unmooring', short: 'Mooring', icon: '⚓', tab: 'deck' },
+  { key: 'cargo', label: 'Cargo Operations', short: 'Cargo', icon: '📦', tab: 'deck' },
+  { key: 'provisionDeck', label: 'Deck Store', short: 'Deck Store', icon: '📦', tab: 'deck' },
+  { key: 'garbage', label: 'Garbage Disposal', short: 'Garbage', icon: '♻️', tab: 'deck' },
+  // Engine Department
+  { key: 'engineWork', label: 'Engine Work', short: 'Engine Work', icon: '🔧', tab: 'engine' },
+  { key: 'engineWatch', label: 'Engine Watch', short: 'Engine Watch', icon: '⚙️', tab: 'engine' },
+  { key: 'bunkering', label: 'Bunkering', short: 'Bunkering', icon: '⛽', tab: 'engine' },
+  { key: 'provisionEngine', label: 'Engine Store', short: 'Engine Store', icon: '⚙️', tab: 'engine' },
+  // Galley Department
+  { key: 'galleyWork', label: 'Galley Work', short: 'Galley Work', icon: '🍳', tab: 'galley' },
+  { key: 'cooking', label: 'Cooking / Food Prep', short: 'Cooking', icon: '🥘', tab: 'galley' },
+  { key: 'messService', label: 'Mess Service / Cleaning', short: 'Mess Service', icon: '🍽️', tab: 'galley' },
+  { key: 'provisionGalley', label: 'Galley Store/Provision', short: 'Galley Store', icon: '🧑‍🍳', tab: 'galley' },
+  // Drills
+  { key: 'drills', label: 'Drills / Training', short: 'Drills', icon: '🛟', tab: 'drills' },
+  { key: 'standby', label: 'Standby / Extra', short: 'Standby', icon: '⏳', tab: 'drills' },
+  // Others
+  { key: 'other', label: 'Other Duties', short: 'Other', icon: '🔧', tab: 'others' },
+];
+
+const TASK_TABS: { id: 'deck'|'engine'|'galley'|'drills'|'others'; label: string; short: string; icon: string; }[] = [
+  { id: 'deck', label: 'Deck Dept', short: 'Deck', icon: '⚓' },
+  { id: 'engine', label: 'Engine Dept', short: 'Engine', icon: '⚙️' },
+  { id: 'galley', label: 'Galley Dept', short: 'Galley', icon: '🍳' },
+  { id: 'drills', label: 'Drills', short: 'Drills', icon: '🛟' },
+  { id: 'others', label: 'Others', short: 'Others', icon: '📦' },
 ];
 const WATCH_SLOTS = ['12-4 (00-04 & 12-16)','4-8 (04-08 & 16-20)','8-12 (08-12 & 20-00)','12-6 (00-06 & 12-18)','6-12 (06-12 & 18-00)','Daywork'];
 const GMT_OFFSETS = [-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,4.5,5,5.5,5.75,6,6.5,7,8,8.75,9,9.5,10,10.5,11,12,12.75,13,14];
@@ -90,6 +102,16 @@ const PH_HOLIDAYS_2026 = [
   {date:'2026-12-25',name:'Christmas Day'},
   {date:'2026-12-30',name:'Rizal Day'},
 ];
+// Fixed holidays that recur every year on same MM-DD
+const FIXED_HOLIDAYS_MMDD: Record<string,string> = {
+  '01-01': "New Year's Day",
+  '05-01': "Labor Day",
+  '06-12': "Independence Day",
+  '08-31': "National Heroes Day",
+  '11-30': "Bonifacio Day",
+  '12-25': "Christmas Day",
+  '12-30': "Rizal Day",
+};
 
 function toISO(d: Date){const y=d.getFullYear();const m=String(d.getMonth()+1).padStart(2,'0');const day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`;}
 function getShipTimeNow(gmtOffset: number, enabled: boolean){ if(!enabled) return new Date(); const now=new Date(); const utc=now.getTime()+now.getTimezoneOffset()*60000; return new Date(utc+gmtOffset*3600000); }
@@ -105,40 +127,55 @@ function format24H_HM(date: Date){return `${String(date.getHours()).padStart(2,'
 function parseISO(s: string){
   if(!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return new Date(NaN);
   const [y,m,dd]=s.split('-').map(Number);
-  if(!y||!m||!dd) return new Date(NaN);
+  if(Number.isNaN(y)||Number.isNaN(m)||Number.isNaN(dd)) return new Date(NaN);
+  if(m<1||m>12||dd<1||dd>31) return new Date(NaN);
   return new Date(y,m-1,dd);
 }
 function getMonday(d: Date){const date=new Date(d);const day=date.getDay();const diff=date.getDate()-day+(day===0?-6:1);date.setDate(diff);date.setHours(0,0,0,0);return date;}
 function addDays(d: Date,n: number){const nd=new Date(d);nd.setDate(nd.getDate()+n);return nd;}
 function sumBreakdown(b: Breakdown){return Object.values(b).reduce((a,v)=>a+(Number(v)||0),0);}
-function emptyBreakdown(): Breakdown{return {deckWork:0,watch:0,standby:0,mooring:0,bunkering:0,provisionDeck:0,provisionEngine:0,provisionGalley:0,garbage:0,cargo:0,drills:0,other:0,galleyWork:0,cooking:0,messService:0};}
+function emptyBreakdown(): Breakdown{return {deckWork:0,engineWork:0,watch:0,bridgeLookout:0,engineWatch:0,standby:0,mooring:0,bunkering:0,provisionDeck:0,provisionEngine:0,provisionGalley:0,garbage:0,cargo:0,drills:0,other:0,galleyWork:0,cooking:0,messService:0};}
 function isValidISO(s:string){ const d=parseISO(s); return !isNaN(d.getTime()); }
 
 function Time24Input({value, onChange, isDark}:{value:string, onChange:(v:string)=>void, isDark:boolean}){
-  const [h,m]= (value||'').split(':');
-  const hh = h||''; const mm = m||'';
+  // Normalize value to HH:MM or empty
+  const parts = (value||'').split(':');
+  let hh = parts[0]||'';
+  let mm = parts[1]||'';
+  // Pad check: if user stored "8:5", show as "08" and "05" but keep logic
+  const normalize = (v:string)=>{
+    if(!v) return '';
+    const n = parseInt(v,10);
+    if(Number.isNaN(n)) return '';
+    return String(n).padStart(2,'0');
+  };
+  const displayHH = normalize(hh) || hh;
+  const displayMM = normalize(mm) || mm;
+
   const setH=(newH:string)=>{
     if(newH===""){ onChange(""); return; }
-    const newVal = `${newH.padStart(2,'0')}:${(mm||'00').padStart(2,'0')}`;
-    onChange(newVal);
+    const cleanH = normalize(newH);
+    const cleanM = normalize(mm) || '00';
+    onChange(`${cleanH}:${cleanM}`);
   };
   const setM=(newM:string)=>{
     if(newM===""){
-      if(hh) onChange(`${hh}:00`);
+      if(hh) onChange(`${normalize(hh)||hh}:00`);
       else onChange("");
       return;
     }
-    const newVal = `${(hh||'00').padStart(2,'0')}:${newM.padStart(2,'0')}`;
-    onChange(newVal);
+    const cleanH = normalize(hh) || '00';
+    const cleanM = normalize(newM);
+    onChange(`${cleanH}:${cleanM}`);
   };
   return (
     <div className="flex items-center gap-2">
-      <select value={hh} onChange={e=>setH(e.target.value)} title="Hour (00-23)" aria-label="Hour" className={`flex-1 min-w-0 border rounded-full px-1 py-2.5 text-[12px] font-bold text-center outline-none focus:ring-2 focus:ring-orange-500/30 ${isDark?'bg-[#0f172a] border-white/20 text-white':'bg-white border-slate-200 text-slate-900'}`}>
+      <select value={displayHH} onChange={e=>setH(e.target.value)} title="Hour (00-23)" aria-label="Hour" className={`flex-1 min-w-0 border rounded-full px-1 py-2.5 text-[12px] font-bold text-center outline-none focus:ring-2 focus:ring-orange-500/30 ${isDark?'bg-[#0f172a] border-white/20 text-white':'bg-white border-slate-200 text-slate-900'}`}>
         <option value="">--</option>
         {Array.from({length:24}).map((_,i)=><option key={i} value={String(i).padStart(2,'0')} className={isDark ? "text-white bg-[#0f172a]" : "text-black bg-white"}>{String(i).padStart(2,'0')}</option>)}
       </select>
       <span className={`font-bold shrink-0 ${isDark?'text-white':'text-slate-900'}`}>:</span>
-      <select value={mm} onChange={e=>setM(e.target.value)} title="Minute (00-59)" aria-label="Minute" className={`flex-1 min-w-0 border rounded-full px-1 py-2.5 text-[12px] font-bold text-center outline-none focus:ring-2 focus:ring-orange-500/30 ${isDark?'bg-[#0f172a] border-white/20 text-white':'bg-white border-slate-200 text-slate-900'}`}>
+      <select value={displayMM} onChange={e=>setM(e.target.value)} title="Minute (00-59)" aria-label="Minute" className={`flex-1 min-w-0 border rounded-full px-1 py-2.5 text-[12px] font-bold text-center outline-none focus:ring-2 focus:ring-orange-500/30 ${isDark?'bg-[#0f172a] border-white/20 text-white':'bg-white border-slate-200 text-slate-900'}`}>
         <option value="">--</option>
         {Array.from({length:60}).map((_,i)=><option key={i} value={String(i).padStart(2,'0')} className={isDark ? "text-white bg-[#0f172a]" : "text-black bg-white"}>{String(i).padStart(2,'0')}</option>)}
       </select>
@@ -177,7 +214,7 @@ function computeWeekOT(entries: Record<string, Entry>, weekStart: Date, isHolida
   Object.values(perDay).forEach(p=>{
     totalOT+=p.otHours; totalDouble+=p.doubleHours; totalPay+=p.payHours; cumulativeRegular+=p.regularHours;
     if(p.isWeekend) weekendOT+=p.otHours;
-    else if(p.isHoliday) holidayOT+= p.doubleHours>0 ? p.doubleHours/2 : p.otHours; // actual work hours on holiday
+    else if(p.isHoliday) holidayOT+= p.doubleHours>0 ? p.doubleHours/2 : p.otHours;
     else weekdayOT+=p.otHours;
   });
   return {perDay,totals:{totalOT,totalDouble,totalPay,cumulativeRegular,weekdayOT,weekendOT,holidayOT}};
@@ -185,24 +222,29 @@ function computeWeekOT(entries: Record<string, Entry>, weekStart: Date, isHolida
 export default function App(){
   const [theme,setTheme]=useState<'dark'|'light'>(()=>{try{const s=localStorage.getItem('seatime-theme'); if(s==='dark'||s==='light') return s as any;}catch{} return 'dark';});
   const [timeSettings,setTimeSettings]=useState<TimeSettings>(()=>{try{const s=localStorage.getItem('seatime-time-settings'); if(s){const p=JSON.parse(s); return {gmtOffset: typeof p.gmtOffset==='number'?p.gmtOffset:8, shipTimeEnabled: !!p.shipTimeEnabled, label: p.label||'Ship Time'};}}catch{} return {gmtOffset:8, shipTimeEnabled:false, label:'Ship Time'};});
-  const [viewDate,setViewDate]=useState(()=>getShipTimeNow(timeSettings.gmtOffset, timeSettings.shipTimeEnabled));
+  const [viewDate,setViewDate]=useState(()=>getShipTimeNow(8, false));
   const [showTimeModal,setShowTimeModal]=useState(false);
   const [seafarerInfo,setSeafarerInfo]=useState<SeafarerInfo>(()=>{try{const s=localStorage.getItem('seatime-seafarer');if(s){const parsed=JSON.parse(s); return {name:parsed.name||'',employeeNo:parsed.employeeNo||'',department:parsed.department||'Deck'};}}catch{}return {name:'',employeeNo:'',department:'Deck'};});
   const [vesselInfo,setVesselInfo]=useState<VesselInfo>(()=>{try{const s=localStorage.getItem('seatime-vessel');if(s){const parsed=JSON.parse(s); return {name:parsed.name||'',type:parsed.type||'',imo:parsed.imo||'',flag:parsed.flag||'',masterName:parsed.masterName||''};}}catch{}return {name:'',type:'',imo:'',flag:'',masterName:''};});
   const [showVesselModal,setShowVesselModal]=useState(false);
   const [showShareModal,setShowShareModal]=useState(false);
   const [showSidebar,setShowSidebar] = useState(false);
-  // useEffect(()=>{
-  //   if ('serviceWorker' in navigator) {
-  //     window.addEventListener('load', () => {
-  //       navigator.serviceWorker.register('/sw.js').then(reg => console.log('SW registered:', reg.scope)).catch(err => console.log('SW failed:', err));
-  //     });
-  //   }
-  // },[]);
+  const [deferredPrompt,setDeferredPrompt]=useState<any>(null);
+  const [isInstalled,setIsInstalled]=useState(false);
+  const [isIOSDevice,setIsIOSDevice]=useState(false);
   const [summaryView,setSummaryView]=useState<'weekly'|'monthly'>('weekly');
   const [userRank,setUserRank]=useState<Rank | ''>(()=>{try{const s=localStorage.getItem('seatime-rank');if(s)return s as Rank;}catch{}return '';});
-  const [entries,setEntries]=useState<Record<string, Entry>>(()=>{try{const s=localStorage.getItem('seatime-entries');if(s)return JSON.parse(s);}catch{}return {};});
+  const [entries,setEntries]=useState<Record<string, Entry>>(()=>{try{const s=localStorage.getItem('seatime-entries');if(s){const parsed=JSON.parse(s); if(parsed && typeof parsed==='object') return parsed;}}catch{}return {};});
   const [editing,setEditing]=useState<Entry|null>(null);
+  const [activeTaskTab,setActiveTaskTab]=useState<'deck'|'engine'|'galley'|'drills'|'others'>('deck');
+  // Auto-select tab based on user's department when opening editor
+  useEffect(()=>{
+    if(editing){
+      if(seafarerInfo.department==='Engine') setActiveTaskTab('engine');
+      else if(seafarerInfo.department==='Galley') setActiveTaskTab('galley');
+      else setActiveTaskTab('deck');
+    }
+  },[editing, seafarerInfo.department]);
   const [now24H,setNow24H]=useState(()=>getShipTimeNow(timeSettings.gmtOffset, timeSettings.shipTimeEnabled));
   useEffect(()=>{const id=setInterval(()=>setNow24H(getShipTimeNow(timeSettings.gmtOffset, timeSettings.shipTimeEnabled)),1000);return ()=>clearInterval(id);},[timeSettings]);
   useEffect(()=>{try{localStorage.setItem('seatime-theme',theme);}catch{}},[theme]);
@@ -212,26 +254,81 @@ export default function App(){
   useEffect(()=>{try{localStorage.setItem('seatime-seafarer',JSON.stringify(seafarerInfo));}catch{}},[seafarerInfo]);
   useEffect(()=>{try{localStorage.setItem('seatime-entries',JSON.stringify(entries));}catch{}},[entries]);
 
-  // Holidays: exact dates for 2026 plus MM-DD matching for any year (fixed holidays)
-  const holidayMonthDayMap=useMemo(()=>new Map(PH_HOLIDAYS_2026.map(h=>[h.date.slice(5), h.name] as [string,string])),[]);
+  // --- PWA Install Logic + SW Registration ---
+  useEffect(()=>{
+    // Register service worker for PWA installability on Vercel
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    }
+    // Check if already installed
+    const checkInstalled = () => {
+      // @ts-ignore
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
+      if(isStandalone) setIsInstalled(true);
+    };
+    checkInstalled();
+    // iOS detection
+    const ua = window.navigator.userAgent;
+    const iOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    setIsIOSDevice(iOS);
+
+    const handleBeforeInstall = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    window.addEventListener('appinstalled', handleAppInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  },[]);
+
+  // Holidays: exact dates for 2026 plus fixed MM-DD for any year
   const holidaysSet=useMemo(()=>new Set(PH_HOLIDAYS_2026.map(h=>h.date)),[]);
   const holidayMap=useMemo(()=>new Map(PH_HOLIDAYS_2026.map(h=>[h.date,h.name] as [string,string])),[]);
   const isHolidayDate = (iso: string) => {
     if (holidaysSet.has(iso)) return true;
     const mmdd = iso.slice(5);
-    return holidayMonthDayMap.has(mmdd);
+    return mmdd in FIXED_HOLIDAYS_MMDD;
   };
   const getHolidayName = (iso: string) => {
-    return holidayMap.get(iso) || holidayMonthDayMap.get(iso.slice(5));
+    if(holidayMap.has(iso)) return holidayMap.get(iso);
+    const mmdd = iso.slice(5);
+    return FIXED_HOLIDAYS_MMDD[mmdd];
   };
   const weekStart=useMemo(()=>getMonday(viewDate),[viewDate]);
   const monthStart=useMemo(()=>new Date(viewDate.getFullYear(),viewDate.getMonth(),1),[viewDate]);
-  const weekOT=useMemo(()=>computeWeekOT(entries,weekStart,isHolidayDate),[entries,weekStart,holidaysSet, holidayMonthDayMap]);
+  const weekOT=useMemo(()=>computeWeekOT(entries,weekStart,isHolidayDate),[entries,weekStart,holidaysSet]);
   const calendarDays=useMemo(()=>{const days: Date[]=[];const start=getMonday(monthStart);for(let i=0;i<42;i++)days.push(addDays(start,i));return days;},[monthStart]);
+
+  // Filter entries for current month - memoized
+  const monthEntries = useMemo(()=>{
+    return Object.values(entries).filter(e=>{
+      const d=parseISO(e.date);
+      if(isNaN(d.getTime())) return false;
+      return d.getFullYear()===viewDate.getFullYear() && d.getMonth()===viewDate.getMonth();
+    }).sort((a,b)=>a.date.localeCompare(b.date));
+  },[entries, viewDate]);
 
   const weekBreakdownTotals=useMemo(()=>{
     const totals=emptyBreakdown(); let totalWork=0; let totalRest=0;
-    for(let i=0;i<7;i++){const d=addDays(weekStart,i);const iso=toISO(d);const e=entries[iso];if(e){(Object.keys(totals) as (keyof Breakdown)[]).forEach(k=>{totals[k]+=e.breakdown[k]||0;});totalWork+=e.totalWork; totalRest+= Math.max(0, 24 - e.totalWork);}}
+    for(let i=0;i<7;i++){
+      const d=addDays(weekStart,i);
+      const iso=toISO(d);
+      const e=entries[iso];
+      if(e){
+        (Object.keys(totals) as (keyof Breakdown)[]).forEach(k=>{totals[k]+=e.breakdown[k]||0;});
+        totalWork+=e.totalWork;
+        totalRest+= Math.max(0, 24 - e.totalWork);
+      }else{
+        totalRest+=24; // count missing days as full rest
+      }
+    }
     return {totals,totalWork,totalRest};
   },[entries,weekStart]);
 
@@ -248,10 +345,13 @@ export default function App(){
         totalWorkWeek+=e.totalWork;
         totalRestWeek+=rest;
         if(rest>=10) compliantDays++;
+      }else{
+        // No entry = full rest day, compliant
+        totalRestWeek+=24;
       }
     }
     const weekRest = totalRestWeek;
-    return {compliantDays,totalDaysWithEntry,weekRest,dayCompliancePct: totalDaysWithEntry?Math.round((compliantDays/totalDaysWithEntry)*100):0};
+    return {compliantDays,totalDaysWithEntry,weekRest,dayCompliancePct: totalDaysWithEntry?Math.round((compliantDays/totalDaysWithEntry)*100):100, totalWorkWeek};
   },[entries,weekStart]);
 
   const monthTotals=useMemo(()=>{
@@ -261,7 +361,10 @@ export default function App(){
       const d=new Date(viewDate.getFullYear(),viewDate.getMonth(),day);
       const iso=toISO(d);
       const e=entries[iso];
-      if(!e) continue;
+      if(!e){
+        monthRest+=24;
+        continue;
+      }
       if(!isValidISO(iso)) continue;
       const isHoliday=isHolidayDate(iso);
       const isWeekend=d.getDay()===0||d.getDay()===6;
@@ -300,7 +403,6 @@ export default function App(){
     if(existing){
       newEntry={...existing};
       if(holidayName && !newEntry.notes){
-        // Auto-note holiday if notes empty
         newEntry={...newEntry, notes: holidayName};
       }
     }else{
@@ -309,35 +411,35 @@ export default function App(){
     setEditing(newEntry);
   };
   const getAutoPortNote = (portName: string, arrivalTime: string, departureTime: string, location: string) => {
-  const pn = (portName||'').trim();
-  if(!pn) return null;
-  if(location==='At Sea') return `Enroute to ${pn}`;
-  const hasArr = !!arrivalTime, hasDep = !!departureTime;
-  if(hasArr && hasDep) return `Arrival & Departure - ${pn}`;
-  if(hasArr && !hasDep) return `Arrival - ${pn}`;
-  if(!hasArr && hasDep) return `Departure - ${pn}`;
-  if(!hasArr && !hasDep) return `Berthed - ${pn}`;
-  return `Arrival - ${pn}`;
-};
+    const pn = (portName||'').trim();
+    if(!pn) return null;
+    if(location==='At Sea') return `Enroute to ${pn}`;
+    const hasArr = !!arrivalTime, hasDep = !!departureTime;
+    if(hasArr && hasDep) return `Arrival & Departure - ${pn}`;
+    if(hasArr && !hasDep) return `Arrival - ${pn}`;
+    if(!hasArr && hasDep) return `Departure - ${pn}`;
+    return `Berthed - ${pn}`;
+  };
   const handleSave=()=>{
-  if(!editing) return;
-  const isRestDay = editing.duty==='Rest Day';
-  const total=isRestDay?0:sumBreakdown(editing.breakdown);
-  if(total>24){ alert('Total work cannot exceed 24h per day. Current: '+total.toFixed(1)+'h'); return; }
-  if(!isValidISO(editing.date)){ alert('Invalid date'); return; }
-  const autoNote = getAutoPortNote(editing.portName, editing.arrivalTime, editing.departureTime, editing.location);
-  let finalNotes = editing.notes?.trim() || '';
-  if(isRestDay){
-    finalNotes = finalNotes || 'Rest Day - No Work (24h Rest)';
-  }else if(autoNote){
-    if(!finalNotes || finalNotes===holidayMap.get(editing.date)){ finalNotes = autoNote; }
-    else if(!finalNotes.includes(autoNote)){ finalNotes = `${autoNote} • ${finalNotes}`; }
-  }
-  const toSave: Entry={...editing, notes: finalNotes, totalWork: total, breakdown: isRestDay ? emptyBreakdown() : editing.breakdown};
-  if(!isRestDay && total===0&&!finalNotes&&!editing.arrivalTime&&!editing.departureTime&&!editing.portName){
-    const copy={...entries};delete copy[editing.date];setEntries(copy);
-  }else{setEntries(prev=>({...prev,[editing.date]:toSave}));}
-setEditing(null);
+    if(!editing) return;
+    const isRestDay = editing.duty==='Rest Day';
+    const total=isRestDay?0:sumBreakdown(editing.breakdown);
+    if(total>24){ alert('Total work cannot exceed 24h per day. Current: '+total.toFixed(1)+'h'); return; }
+    if(!isValidISO(editing.date)){ alert('Invalid date'); return; }
+    const autoNote = getAutoPortNote(editing.portName, editing.arrivalTime, editing.departureTime, editing.location);
+    const holidayName = getHolidayName(editing.date) || '';
+    let finalNotes = editing.notes?.trim() || '';
+    if(isRestDay){
+      finalNotes = finalNotes || 'Rest Day - No Work (24h Rest)';
+    }else if(autoNote){
+      if(!finalNotes || finalNotes===holidayName){ finalNotes = autoNote; }
+      else if(!finalNotes.includes(autoNote)){ finalNotes = `${autoNote} • ${finalNotes}`; }
+    }
+    const toSave: Entry={...editing, notes: finalNotes, totalWork: total, breakdown: isRestDay ? emptyBreakdown() : editing.breakdown};
+    if(!isRestDay && total===0&&!finalNotes&&!editing.arrivalTime&&!editing.departureTime&&!editing.portName){
+      const copy={...entries};delete copy[editing.date];setEntries(copy);
+    }else{setEntries(prev=>({...prev,[editing.date]:toSave}));}
+    setEditing(null);
   };
   const handleDelete=()=>{if(!editing)return;const copy={...entries};delete copy[editing.date];setEntries(copy);setEditing(null);};
   const updateBreakdown=(key: keyof Breakdown, delta: number)=>{
@@ -366,7 +468,7 @@ setEditing(null);
     if(isHoliday) return {type:'OT-Holiday (straight)',multiplier:1,pay:liveTotal};
     if(liveTotal>8) return {type:`Regular 8h + OT ${liveTotal-8}h (Beyond 8h/day)`,multiplier:1,pay:liveTotal};
     return {type:'Regular - Working Time (8h/day Mon-Fri)',multiplier:1,pay:liveTotal};
-  },[editing,liveTotal,holidaysSet]);
+  },[editing?.date, editing?.location, liveTotal]);
 
   const isDark = theme==='dark';
   const weekPayHours = weekOT.totals.cumulativeRegular + weekOT.totals.totalOT + weekOT.totals.totalDouble;
@@ -386,16 +488,13 @@ setEditing(null);
         </div>
       </div>
 
-      {/* Clock in Center */}
-      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 bg-white/10 border border-white/20 rounded-full px-[10px] h-[20px] text-white">
+      {/* Clock - flex item to avoid mobile overlap */}
+      <div className="flex items-center gap-1 bg-white/10 border border-white/20 rounded-full px-2 md:px-[10px] h-[22px] md:h-[20px] text-white shrink-0 whitespace-nowrap">
         <span className="text-[13px] font-mono font-bold">{format24H(now24H)}</span><sup className="text-[10px] opacity-60 ml-0.5 -top-0.5">24H</sup>
       </div>
 
       <div className="flex items-center gap-2">
-        <button onClick={()=>setShowTimeModal(true)} title="Ship Time / GMT Settings" className="h-8 px-3 text-[11px] font-bold bg-white/10 border border-white/20 rounded-full text-white cursor-pointer whitespace-nowrap flex items-center justify-center leading-none">
-          🕒 {timeSettings.shipTimeEnabled ? formatGMT(timeSettings.gmtOffset) : 'Local'}
-        </button>
-        <button onClick={()=>setTheme(isDark?'light':'dark')} className="h-8 px-3 text-[12px] font-bold bg-white/10 border border-white/20 rounded-full text-white cursor-pointer whitespace-nowrap flex items-center justify-center leading-none">
+        <button onClick={()=>setTheme(isDark?'light':'dark')} className="text-[11px] bg-white/10 border border-white/20 rounded-full px-3 py-1.5 cursor-pointer text-white font-bold">
           {isDark?'☀️ Light':'🌙 Dark'}
         </button>
       </div>
@@ -410,14 +509,16 @@ setEditing(null);
               <button onClick={()=>setShowSidebar(false)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">✕</button>
             </div>
             <button onClick={()=>{
-              const data={entries,vesselInfo,seafarerInfo,userRank,exportDate:new Date().toISOString()};
-              const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-              const url=URL.createObjectURL(blob);
-              const a=document.createElement('a'); a.href=url; 
-              const safeRank = (userRank || 'Rank').replace(/[^a-zA-Z0-9 ]/g, '').trim().replace(/\s+/g, '_');
-              const safeName = (seafarerInfo.name || 'Seafarer').trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-              a.download=`${safeRank}_${safeName}_${toISO(new Date())}.json`;
-              a.click(); URL.revokeObjectURL(url);
+              try{
+                const data={entries,vesselInfo,seafarerInfo,userRank,exportDate:new Date().toISOString()};
+                const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+                const url=URL.createObjectURL(blob);
+                const a=document.createElement('a'); a.href=url; 
+                const safeRank = (userRank || 'Rank').replace(/[^a-zA-Z0-9 ]/g, '').trim().replace(/\s+/g, '_');
+                const safeName = (seafarerInfo.name || 'Seafarer').trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+                a.download=`${safeRank}_${safeName}_${toISO(new Date())}.json`;
+                a.click(); URL.revokeObjectURL(url);
+              }catch(e){ alert('Export failed'); console.error(e); }
               setShowSidebar(false);
             }} className={`w-full text-left px-3 py-2.5 rounded-[12px] font-bold text-[12px] cursor-pointer block ${isDark?'bg-white/10':'bg-slate-100'}`}>📤 Export</button>
             <label className={`w-full text-left px-3 py-2.5 rounded-[12px] font-bold text-[12px] cursor-pointer block ${isDark?'bg-white/10':'bg-slate-100'}`}>📥 Import<input type="file" accept=".json" className="hidden" onChange={e=>{
@@ -426,9 +527,10 @@ setEditing(null);
               reader.onload=ev=>{
                 try{
                   const data=JSON.parse(ev.target?.result as string);
-                  if(data.entries) setEntries(data.entries);
-                  if(data.vesselInfo) setVesselInfo(data.vesselInfo);
-                  if(data.seafarerInfo) setSeafarerInfo(data.seafarerInfo);
+                  if(!data || typeof data!=='object') throw new Error('Invalid');
+                  if(data.entries && typeof data.entries==='object') setEntries(data.entries);
+                  if(data.vesselInfo && typeof data.vesselInfo==='object') setVesselInfo(data.vesselInfo);
+                  if(data.seafarerInfo && typeof data.seafarerInfo==='object') setSeafarerInfo(data.seafarerInfo);
                   if(data.userRank) setUserRank(data.userRank);
                   alert('Imported!');
                 }catch{alert('Invalid file');}
@@ -437,6 +539,37 @@ setEditing(null);
               setShowSidebar(false);
             }} /></label>
             <button onClick={()=>{setShowShareModal(true); setShowSidebar(false);}} className={`w-full text-left px-3 py-2.5 rounded-[12px] font-bold text-[12px] cursor-pointer block ${isDark?'bg-white/10':'bg-slate-100'}`}>🔗 Share App</button>
+            {/* Install App Button */}
+            {!isInstalled ? (
+              <button
+                onClick={async()=>{
+                  if(deferredPrompt){
+                    try{
+                      deferredPrompt.prompt();
+                      const { outcome } = await deferredPrompt.userChoice;
+                      if(outcome==='accepted'){
+                        setIsInstalled(true);
+                      }
+                      setDeferredPrompt(null);
+                    }catch(err){ console.error(err); }
+                  }else if(isIOSDevice){
+                    setShowSidebar(false);
+                    setTimeout(()=>setShowShareModal(true), 300);
+                    alert('To install on iPhone/iPad:\n1. Tap the Share button (square with arrow) in Safari\n2. Scroll down and tap \"Add to Home Screen\"\n3. Tap Add');
+                  }else{
+                    alert('To install:\n• Chrome/Edge: Click the install icon in address bar or Menu → Install app\n• If already installed, you are all set!');
+                  }
+                }}
+                className={`w-full text-left px-3 py-2.5 rounded-[12px] font-bold text-[12px] cursor-pointer flex items-center justify-between ${deferredPrompt ? 'bg-[#f97316] text-white border border-[#f97316] shadow-md' : isDark?'bg-white/10':'bg-slate-100'}`}
+              >
+                <span>⬇️ Install App</span>
+                {deferredPrompt && <span className="text-[10px] bg-white text-[#f97316] px-2 py-0.5 rounded-full font-bold animate-pulse">NEW</span>}
+              </button>
+            ) : (
+              <div className={`w-full text-left px-3 py-2.5 rounded-[12px] font-bold text-[12px] flex items-center gap-2 ${isDark?'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300':'bg-emerald-50 border border-emerald-200 text-emerald-700'}`}>
+                <span>✅ App Installed</span>
+              </div>
+            )}
             <button onClick={()=>{setShowTimeModal(true); setShowSidebar(false);}} className={`w-full text-left px-3 py-2.5 rounded-[12px] font-bold text-[12px] cursor-pointer block ${isDark?'bg-white/10':'bg-slate-100'}`}>🕒 Ship Time / GMT</button>
             <button onClick={()=>{if(window.confirm('Clear ALL data? Export first!')){ setEntries({}); setVesselInfo({name:'',type:'',imo:'',flag:'',masterName:''}); setSeafarerInfo({name:'',employeeNo:'',department:'Deck'}); setUserRank('' as any); try{localStorage.removeItem('seatime-entries'); localStorage.removeItem('seatime-vessel'); localStorage.removeItem('seatime-seafarer'); localStorage.removeItem('seatime-rank');}catch{} alert('All data cleared!'); setShowSidebar(false); }}} className="w-full text-left px-3 py-2.5 rounded-[12px] font-bold text-[12px] cursor-pointer block bg-red-500/20 border border-red-500/30 text-red-400">🗑️ Clear All</button>
           </div>
@@ -449,71 +582,50 @@ setEditing(null);
           <div><div className="text-[11px] uppercase opacity-50">Vessel Name</div><div className={`mt-1 w-full text-left border rounded-[10px] px-3 py-2 text-[13px] font-bold hover:opacity-80 ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.name || 'Vessel Name'}</div></div>
           <div><div className="text-[11px] uppercase opacity-50">IMO</div><div className={`mt-1 border rounded-[10px] px-3 py-2 text-[13px] font-mono ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.imo || 'IMO Number'}</div></div>
           <div><div className="text-[11px] uppercase opacity-50">Flag</div><div className={`mt-1 border rounded-[10px] px-3 py-2 text-[13px] ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.flag || 'Flag Registry'}</div></div>
-          <div><div className="text-[11px] uppercase opacity-50">Master Name</div><button onClick={()=>setShowVesselModal(true)} className={`mt-1 w-full text-left border rounded-[10px] px-3 py-2 cursor-pointer text-[13px] font-bold hover:opacity-80 ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.masterName||'Set Master Name'}</button></div>
+          <div><div className="text-[11px] uppercase opacity-50">Master</div><div className={`mt-1 border rounded-[10px] px-3 py-2 text-[13px] font-bold truncate ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.masterName || 'Master Name'}</div></div>
         </div>
       </div>
 
       <main className="max-w-[1600px] mx-auto px-4 md:px-6 py-4 grid grid-cols-12 gap-4">
         <div className="col-span-12 lg:col-span-3 space-y-4">
           <div className={isDark?"bg-[#121c33] border border-white/10 rounded-[16px] p-4":"bg-white border border-slate-200 rounded-[16px] p-4"}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-[14px] font-bold uppercase tracking-wide">Pay Hours</div>
-              <div className={`flex rounded-full p-0.5 border gap-0.5 ${isDark?'bg-[#0f172a] border border-white/10':'bg-slate-100 border-slate-200'}`}>
-                <button
-                  onClick={() => setSummaryView('weekly')}
-                  className={`flex-1 px-1 py-1 rounded-full text-[12px] font-bold tracking-wide transition-all duration-200 cursor-pointer
-                  ${summaryView === 'weekly'
-                  ? 'bg-[#f97316] text-white shadow-sm'
-                  : isDark
-                    ? 'text-white/60 hover:bg-white/10 hover:text-white'
-                    : 'text-slate-500 hover:bg-white hover:text-slate-900'
-                }`}>
-                WEEK
-              </button>
-              <button
-                  onClick={() => setSummaryView('monthly')}
-                  className={`flex-1 px-1 py-1 rounded-full text-[12px] font-bold tracking-wide transition-all duration-200 cursor-pointer
-                  ${summaryView === 'monthly'
-                  ? 'bg-[#f97316] text-white shadow-sm'
-                  : isDark
-                    ? 'text-white/60 hover:bg-white/10 hover:text-white'
-                    : 'text-slate-500 hover:bg-white hover:text-slate-900'
-                }`}>
-                MONTH
-              </button>
+            <div className="flex items-center justify-between">
+              <div className="text-[11px] uppercase opacity-60">Summary</div>
+              <div className="flex gap-1">
+                <button onClick={()=>setSummaryView('weekly')} className={`text-[10px] px-2 py-1 rounded-full font-bold ${summaryView==='weekly'?'bg-[#f97316] text-white':'bg-black/10'}`}>Weekly</button>
+                <button onClick={()=>setSummaryView('monthly')} className={`text-[10px] px-2 py-1 rounded-full font-bold ${summaryView==='monthly'?'bg-[#f97316] text-white':'bg-black/10'}`}>Monthly</button>
+              </div>
             </div>
-            </div>
-
             {summaryView==='weekly'?(
               <>
-                <div className="space-y-2">
+                <div className="mt-3 space-y-2">
                   <div className={`flex justify-between items-center border rounded-[12px] px-3 py-3 ${isDark?'bg-white/[0.03] border-white/5':'bg-slate-50 border-slate-200'}`}>
-                    <div><div className="text-[10px] opacity-60">SEA • REG • Regular</div><div className="text-[11px] opacity-40">Mon-Fri 8h/day = 40h/week</div></div>
+                    <div><div className="text-[10px] opacity-60">Working Hours (Reg)</div><div className="text-[11px] opacity-40">Mon-Fri ≤40h/week</div></div>
                     <div className="text-[18px] font-bold text-emerald-400">{weekOT.totals.cumulativeRegular.toFixed(1)}</div>
                   </div>
                   <div className={`flex justify-between items-center border rounded-[12px] px-3 py-3 ${isDark?'bg-white/[0.03] border-white/5':'bg-slate-50 border-slate-200'}`}>
-                    <div><div className="text-[10px] opacity-60">OT Straight</div><div className="text-[11px] opacity-40">Beyond 8h/day + Sat/Sun (All Day OT)</div></div>
-                    <div className="text-[18px] font-bold text-blue-400">{(weekOT.totals.totalOT).toFixed(1)}</div>
+                    <div><div className="text-[10px] opacity-60">OT Hours</div><div className="text-[11px] opacity-40">Wkday {weekOT.totals.weekdayOT.toFixed(1)}h + Wkend {weekOT.totals.weekendOT.toFixed(1)}h</div></div>
+                    <div className="text-[18px] font-bold text-blue-400">{weekOT.totals.totalOT.toFixed(1)}</div>
                   </div>
                   <div className={isDark?"flex justify-between items-center bg-red-950/30 border border-red-500/20 rounded-[14px] px-3 py-3":"flex justify-between items-center bg-red-50 border border-red-200 rounded-[14px] px-3 py-3"}>
-                    <div><div className={isDark?"text-[10px] text-red-300":"text-[10px] text-red-700 font-bold"}>Double OT  (Holiday at Port)</div><div className="text-[11px] opacity-60">Total Work Hours x 2 = OT Hours </div></div>
-                    <div className="text-[18px] font-bold text-red-500">{weekOT.totals.totalDouble.toFixed(1)}</div>
-                    </div>
+                    <div><div className={isDark?"text-[10px] text-red-300":"text-[10px] text-red-700 font-bold"}>Double OT  (Holiday at Port)</div><div className="text-[11px] opacity-60">Total Work Hours x 2 = OT Hours</div></div>
+                    <div className="text-[18px] font-bold text-red-400">{weekOT.totals.totalDouble.toFixed(1)}</div>
+                  </div>
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-2">
-                  <div className={`border rounded-[12px] p-3 ${isDark?'bg-[#0f172a] border border-white/10':'bg-slate-50 border-slate-200'}`}>
-                    <div className="text-[9px] uppercase opacity-50">Total Actual</div>
+                  <div className={`border rounded-[12px] p-3 ${isDark?'bg-[#0f172a] border-white/10':'bg-slate-50 border-slate-200'}`}>
+                    <div className="text-[9px] uppercase opacity-50">Total Work</div>
                     <div className="text-[18px] font-bold mt-1">{weekBreakdownTotals.totalWork.toFixed(1)}h</div>
                   </div>
                   <div className="bg-[#f97316] rounded-[12px] p-3 text-white">
-                    <div className="text-[9px] uppercase opacity-80">Total Paid (incl 2×)</div>
+                    <div className="text-[9px] uppercase opacity-80">Pay Hours</div>
                     <div className="text-[18px] font-bold mt-1">{weekPayHours.toFixed(1)}h</div>
                   </div>
                 </div>
                 <div className={`mt-3 border rounded-[12px] p-3 ${isDark?'bg-emerald-950/20 border-emerald-500/20':'bg-emerald-50 border-emerald-200'}`}>
                   <div className="text-[9px] uppercase text-emerald-600">Rest Hours</div>
                   <div className="text-[14px] font-bold text-emerald-500">{weekBreakdownTotals.totalRest.toFixed(1)}h <span className="text-[10px] opacity-60">/ 168h week</span></div>
-                  <div className="text-[9px] opacity-50 mt-1">{compliance.compliantDays}/{compliance.totalDaysWithEntry} days ≥10h rest • {compliance.weekRest}h week rest</div>
+                  <div className="text-[9px] opacity-50 mt-1">{compliance.compliantDays}/{compliance.totalDaysWithEntry} days ≥10h rest • {compliance.weekRest.toFixed(1)}h week rest</div>
                 </div>
               </>
             ):(
@@ -533,7 +645,7 @@ setEditing(null);
                   </div>
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-2">
-                  <div className={`border rounded-[12px] p-3 ${isDark?'bg-[#0f172a] border border-white/10':'bg-slate-50 border-slate-200'}`}>
+                  <div className={`border rounded-[12px] p-3 ${isDark?'bg-[#0f172a] border-white/10':'bg-slate-50 border-slate-200'}`}>
                     <div className="text-[9px] uppercase opacity-50">Total Work</div>
                     <div className="text-[18px] font-bold mt-1">{monthTotals.totalWork.toFixed(1)}h</div>
                   </div>
@@ -548,13 +660,12 @@ setEditing(null);
                 </div>
               </>
             )}
-            <div className="hidden"></div>
           </div>
 
           <div className={isDark?"bg-[#121c33] border border-white/10 rounded-[16px] p-4":"bg-white border border-slate-200 rounded-[16px] p-4"}>
             <div className="text-[10px] uppercase opacity-60 mb-2">MLC Compliance</div>
             <div className="text-[24px] font-bold">{compliance.dayCompliancePct}%</div>
-            <div className="text-[10px] opacity-50 mt-1">{compliance.compliantDays}/{compliance.totalDaysWithEntry} days ≥10h • {compliance.weekRest}h week (need 77h)</div>
+            <div className="text-[10px] opacity-50 mt-1">{compliance.compliantDays}/{compliance.totalDaysWithEntry} days ≥10h • {compliance.weekRest.toFixed(1)}h week (need 77h)</div>
             <div className="mt-2 w-full bg-black/10 rounded-full h-1.5"><div className="bg-emerald-400 h-1.5 rounded-full" style={{width:`${compliance.dayCompliancePct}%`}} /></div>
           </div>
         </div>
@@ -622,7 +733,7 @@ setEditing(null);
           <div className={isDark?"bg-[#121c33] border border-white/10 rounded-[16px] p-4":"bg-white border border-slate-200 rounded-[16px] p-4"}>
             <div className="flex items-center justify-start gap-3 mb-3">
               <div className="text-[12px] font-bold uppercase">Detailed Breakdown</div>
-              <div className="text-[12px] opacity-50 ml-4 md:ml-[180px]">{Object.values(entries).filter(e=>{const d=parseISO(e.date); if(isNaN(d.getTime())) return false; return d.getFullYear()===viewDate.getFullYear()&&d.getMonth()===viewDate.getMonth();}).length}  entries • True 24h • Overnight support</div>
+              <div className="text-[12px] opacity-50 ml-4 md:ml-[180px]">{monthEntries.length}  entries • True 24h • Overnight support</div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-[12px]">
@@ -637,23 +748,23 @@ setEditing(null);
                   </tr>
                 </thead>
                 <tbody>
-                  {Object.values(entries).filter(e=>{const d=parseISO(e.date); if(isNaN(d.getTime())) return false; return d.getFullYear()===viewDate.getFullYear()&&d.getMonth()===viewDate.getMonth();}).sort((a,b)=>a.date.localeCompare(b.date)).map((e)=>{
+                  {monthEntries.map((e)=>{
                     const holidayName = getHolidayName(e.date);
                     const isHoliday = !!holidayName && isHolidayDate(e.date);
                     const work = e.totalWork;
                     const dayObj = parseISO(e.date);
                     const isWeekend = dayObj.getDay()===0 || dayObj.getDay()===6;
                     const isRestDayEntry = e.duty==='Rest Day';
-                    let reg=0, ot=0, displayReg=0;
+                    let reg=0, ot=0;
                     const isDouble = isHoliday && e.location==='At Port';
                     if(isRestDayEntry){
-                      reg=0; ot=0; displayReg=0;
+                      reg=0; ot=0;
                     } else if(isDouble){
-                      reg=0; ot=work*2; displayReg=work;
+                      reg=0; ot=work*2;
                     } else if(isHoliday || isWeekend){
-                      reg=0; ot=work; displayReg=work;
+                      reg=0; ot=work;
                     } else {
-                      reg=Math.min(work,8); ot=Math.max(0,work-8); displayReg=work;
+                      reg=Math.min(work,8); ot=Math.max(0,work-8);
                     }
                     const rest = isRestDayEntry ? 24 : Math.max(0,24-work);
                     return (
@@ -665,7 +776,7 @@ setEditing(null);
                         <td className="py-2.5 px-1.5 w-[68px] text-[13px] text-center">
                           {String(e.location).trim()==='At Port' ? '📍 At Port' : String(e.location).trim()==='At Sea' ? '🌊 At Sea' : e.location}
                           </td>
-                        <td className="py-2.5 px-3 w-[100px] text-center"><span className="font-bold text-white" title={`Total Work: ${displayReg.toFixed(1)}h`}>{reg.toFixed(1)}</span></td>
+                        <td className="py-2.5 px-3 w-[100px] text-center"><span className={`font-bold ${isDark?'text-white':'text-slate-900'}`} title={`Total Work: ${work.toFixed(1)}h`}>{reg.toFixed(1)}</span></td>
                         <td className="py-2.5 px-2 w-[54px] text-center"><span className="font-bold text-orange-400">{ot.toFixed(1)}</span></td>
                         <td className="py-2.5 px-2 w-[56px] text-center"><span className="font-bold text-emerald-400">{rest.toFixed(1)}</span></td>
                         <td className="py-2.5 px-3 min-w-[240px] max-w-[360px] text-[13px] leading-snug text-left break-words">
@@ -675,7 +786,7 @@ setEditing(null);
                       </tr>
                     );
                   })}
-                  {Object.values(entries).filter(e=>{const d=parseISO(e.date); if(isNaN(d.getTime())) return false; return d.getFullYear()===viewDate.getFullYear()&&d.getMonth()===viewDate.getMonth();}).length===0&&<tr><td colSpan={6} className="py-8 text-center opacity-40">No entries yet.</td></tr>}
+                  {monthEntries.length===0&&<tr><td colSpan={6} className="py-8 text-center opacity-40">No entries yet.</td></tr>}
                 </tbody>
                 <tfoot>
                   <tr className={`border-t-2 font-medium text-[12px] ${isDark ? 'bg-orange-500/15 border-orange-500/30 text-white' : 'bg-orange-100 border-orange-300 text-slate-900'}`}>
@@ -698,8 +809,8 @@ setEditing(null);
       {showVesselModal && (
         <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={()=>setShowVesselModal(false)} />
-          <div className={`relative w-full md:max-w-[560px] rounded-t-[24px] md:rounded-[24px] shadow-2xl max-h-[90vh] overflow-auto border ${isDark?'bg-[#121c33] border border-white/10':'bg-white border-slate-200'}`}>
-            <div className={`sticky top-0 border-b px-6 py-5 flex items-center justify-between ${isDark?'bg-[#121c33] border border-white/10':'bg-white border-slate-200'}`}>
+          <div className={`relative w-full md:max-w-[560px] rounded-t-[24px] md:rounded-[24px] shadow-2xl max-h-[90vh] overflow-auto border ${isDark?'bg-[#121c33] border-white/10':'bg-white border-slate-200'}`}>
+            <div className={`sticky top-0 border-b px-6 py-5 flex items-center justify-between ${isDark?'bg-[#121c33] border-white/10':'bg-white border-slate-200'}`}>
               <div><div className="text-[18px] font-bold">🚢 Vessel Information</div><div className="text-[11px] opacity-50">Shown in header & reports • True 24H</div></div>
               <button onClick={()=>setShowVesselModal(false)} className={`w-8 h-8 rounded-full flex items-center justify-center ${isDark?'bg-white/10':'bg-slate-100'}`}>✕</button>
             </div>
@@ -707,25 +818,25 @@ setEditing(null);
               <div className={`border rounded-[12px] p-4 ${isDark?'bg-orange-950/20 border-orange-500/20':'bg-orange-50 border-orange-200'}`}>
                 <label className="text-[11px] uppercase font-semibold text-orange-600">👤 Seafarer Information</label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                  <div><label className="text-[10px] opacity-60">Full Name</label><input value={seafarerInfo.name} onChange={e=>setSeafarerInfo({...seafarerInfo,name:e.target.value})} placeholder="e.g., Juan Dela Cruz" className={`mt-1 w-full px-4 py-2.5 rounded-[12px] border text-[13px] font-bold ${isDark?'bg-[#0f172a] border border-white/10 text-white':'bg-slate-50 border-slate-200'}`} /></div>
-                  <div><label className="text-[10px] opacity-60">Employee No.</label><input value={seafarerInfo.employeeNo} onChange={e=>setSeafarerInfo({...seafarerInfo,employeeNo:e.target.value})} placeholder="123456" className={`mt-1 w-full px-4 py-2.5 rounded-[12px] border text-[13px] font-mono ${isDark?'bg-[#0f172a] border border-white/10 text-white':'bg-slate-50 border-slate-200'}`} /></div>
+                  <div><label className="text-[10px] opacity-60">Full Name</label><input value={seafarerInfo.name} onChange={e=>setSeafarerInfo({...seafarerInfo,name:e.target.value})} placeholder="e.g., Juan Dela Cruz" className={`mt-1 w-full px-4 py-2.5 rounded-[12px] border text-[13px] font-bold ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`} /></div>
+                  <div><label className="text-[10px] opacity-60">Employee No.</label><input value={seafarerInfo.employeeNo} onChange={e=>setSeafarerInfo({...seafarerInfo,employeeNo:e.target.value})} placeholder="123456" className={`mt-1 w-full px-4 py-2.5 rounded-[12px] border text-[13px] font-mono ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`} /></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                  <div><label className="text-[10px] opacity-60">Department</label><select value={seafarerInfo.department} onChange={e=>setSeafarerInfo({...seafarerInfo,department:e.target.value as Department})} className={`mt-1 w-full px-4 py-2.5 rounded-[12px] border text-[13px] font-bold ${isDark?'bg-[#0f172a] border border-white/10 text-white':'bg-slate-50 border-slate-200'}`}><option value="Deck">⚓ Deck Department</option><option value="Engine">⚙️ Engine Department</option><option value="Galley">🍳 Galley / Catering</option></select></div>
-                  <div><label className="text-[10px] opacity-60">Rank (Master to Messman)</label><select value={userRank} onChange={e=>{const newRank=e.target.value as Rank; setUserRank(newRank); const rankDept=RANKS.find(r=>r.label===newRank)?.dept; if(rankDept){const mapped: Department = rankDept as Department; setSeafarerInfo(prev=>({...prev,department:mapped}));}}} className={`mt-1 w-full px-4 py-2.5 rounded-[12px] border text-[13px] font-bold ${isDark?'bg-[#0f172a] border border-white/10 text-white':'bg-slate-50 border-slate-200'}`}><optgroup label="Deck Department">{RANKS.filter(r=>r.dept==='Deck').map(r=><option key={r.label} value={r.label}>{r.icon} {r.label}</option>)}</optgroup><optgroup label="Engine Department">{RANKS.filter(r=>r.dept==='Engine').map(r=><option key={r.label} value={r.label}>{r.icon} {r.label}</option>)}</optgroup><optgroup label="Catering / Galley">{RANKS.filter(r=>r.dept==='Galley').map(r=><option key={r.label} value={r.label}>{r.icon} {r.label}</option>)}</optgroup></select></div>
+                  <div><label className="text-[10px] opacity-60">Department</label><select value={seafarerInfo.department} onChange={e=>setSeafarerInfo({...seafarerInfo,department:e.target.value as Department})} className={`mt-1 w-full px-4 py-2.5 rounded-[12px] border text-[13px] font-bold ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`}><option value="Deck">⚓ Deck Department</option><option value="Engine">⚙️ Engine Department</option><option value="Galley">🍳 Galley / Catering</option></select></div>
+                  <div><label className="text-[10px] opacity-60">Rank (Master to Messman)</label><select value={userRank} onChange={e=>{const newRank=e.target.value as Rank; setUserRank(newRank); const rankDept=RANKS.find(r=>r.label===newRank)?.dept; if(rankDept){const mapped: Department = rankDept as Department; setSeafarerInfo(prev=>({...prev,department:mapped}));}}} className={`mt-1 w-full px-4 py-2.5 rounded-[12px] border text-[13px] font-bold ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`}><optgroup label="Deck Department">{RANKS.filter(r=>r.dept==='Deck').map(r=><option key={r.label} value={r.label}>{r.icon} {r.label}</option>)}</optgroup><optgroup label="Engine Department">{RANKS.filter(r=>r.dept==='Engine').map(r=><option key={r.label} value={r.label}>{r.icon} {r.label}</option>)}</optgroup><optgroup label="Catering / Galley">{RANKS.filter(r=>r.dept==='Galley').map(r=><option key={r.label} value={r.label}>{r.icon} {r.label}</option>)}</optgroup></select></div>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label className="text-[11px] uppercase font-semibold opacity-70">Vessel Name</label><input value={vesselInfo.name} onChange={e=>setVesselInfo({...vesselInfo,name:e.target.value})} placeholder="MV SEATIME" className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[14px] font-bold ${isDark?'bg-[#0f172a] border border-white/10 text-white':'bg-slate-50 border-slate-200'}`} /></div>
-                <div><label className="text-[11px] uppercase font-semibold opacity-70">👨‍✈️ Master's Name</label><input value={vesselInfo.masterName} onChange={e=>setVesselInfo({...vesselInfo,masterName:e.target.value})} placeholder="Capt. John Smith" className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[13px] font-bold ${isDark?'bg-[#0f172a] border border-white/10 text-white':'bg-slate-50 border-slate-200'}`} /></div>
+                <div><label className="text-[11px] uppercase font-semibold opacity-70">Vessel Name</label><input value={vesselInfo.name} onChange={e=>setVesselInfo({...vesselInfo,name:e.target.value})} placeholder="MV SEATIME" className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[14px] font-bold ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`} /></div>
+                <div><label className="text-[11px] uppercase font-semibold opacity-70">👨‍✈️ Master&apos;s Name</label><input value={vesselInfo.masterName} onChange={e=>setVesselInfo({...vesselInfo,masterName:e.target.value})} placeholder="Capt. John Smith" className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[13px] font-bold ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`} /></div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label className="text-[11px] uppercase font-semibold opacity-70">Vessel Type</label><select value={vesselInfo.type} onChange={e=>setVesselInfo({...vesselInfo,type:e.target.value})} className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[13px] ${isDark?'bg-[#0f172a] border border-white/10 text-white':'bg-slate-50 border-slate-200'}`}>{VESSEL_TYPES.map(t=><option key={t} value={t}>{t}</option>)}</select></div>
-                <div><label className="text-[11px] uppercase font-semibold opacity-70">Flag Registry</label><select value={vesselInfo.flag} onChange={e=>setVesselInfo({...vesselInfo,flag:e.target.value})} className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[13px] ${isDark?'bg-[#0f172a] border border-white/10 text-white':'bg-slate-50 border-slate-200'}`}>{FLAG_REGISTRIES.map(f=><option key={f} value={f}>{f}</option>)}</select></div>
+                <div><label className="text-[11px] uppercase font-semibold opacity-70">Vessel Type</label><select value={vesselInfo.type} onChange={e=>setVesselInfo({...vesselInfo,type:e.target.value})} className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[13px] ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`}>{VESSEL_TYPES.map(t=><option key={t} value={t}>{t}</option>)}</select></div>
+                <div><label className="text-[11px] uppercase font-semibold opacity-70">Flag Registry</label><select value={vesselInfo.flag} onChange={e=>setVesselInfo({...vesselInfo,flag:e.target.value})} className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[13px] ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`}>{FLAG_REGISTRIES.map(f=><option key={f} value={f}>{f}</option>)}</select></div>
               </div>
-              <div><label className="text-[11px] uppercase font-semibold opacity-70">IMO Number</label><input value={vesselInfo.imo} onChange={e=>setVesselInfo({...vesselInfo,imo:e.target.value})} placeholder="IMO 999999" className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[13px] font-mono ${isDark?'bg-[#0f172a] border border-white/10 text-white':'bg-slate-50 border-slate-200'}`} /></div>
+              <div><label className="text-[11px] uppercase font-semibold opacity-70">IMO Number</label><input value={vesselInfo.imo} onChange={e=>setVesselInfo({...vesselInfo,imo:e.target.value})} placeholder="IMO 999999" className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[13px] font-mono ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`} /></div>
             </div>
-            <div className={`sticky bottom-0 border-t px-6 py-4 flex justify-end gap-2 ${isDark?'bg-[#121c33] border border-white/10':'bg-white border-slate-200'}`}>
+            <div className={`sticky bottom-0 border-t px-6 py-4 flex justify-end gap-2 ${isDark?'bg-[#121c33] border-white/10':'bg-white border-slate-200'}`}>
               <button onClick={()=>setShowVesselModal(false)} className="px-5 py-2.5 rounded-full border text-[12px] font-semibold">Cancel</button>
               <button onClick={()=>setShowVesselModal(false)} className="px-6 py-2.5 rounded-full bg-[#f97316] text-white text-[12px] font-bold">Save</button>
             </div>
@@ -736,15 +847,15 @@ setEditing(null);
       {editing && (
         <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-[2px]" onClick={()=>{setEditing(null);}} />
-          <div className={`relative w-full md:max-w-[760px] max-h-[92vh] md:max-h-[86vh] rounded-t-[22px] md:rounded-[22px] shadow-2xl border flex flex-col overflow-hidden ${isDark?'bg-[#121c33] border border-white/10':'bg-white border-slate-200'}`}>
-            <div className={`text-white px-7 py-5 flex items-start justify-between border-b ${isDark?'bg-[#0f172a] border border-white/10':'bg-[#0f172a] border border-white/10'}`}>
+          <div className={`relative w-full md:max-w-[760px] max-h-[92vh] md:max-h-[86vh] rounded-t-[22px] md:rounded-[22px] shadow-2xl border flex flex-col overflow-hidden ${isDark?'bg-[#121c33] border-white/10':'bg-white border-slate-200'}`}>
+            <div className={`text-white px-7 py-5 flex items-start justify-between border-b bg-[#0f172a] border-white/10`}>
               <div>
                 <div className="text-[11px] uppercase opacity-60">Log Day {isHolidayDate(editing.date)&&<span className="bg-red-500 text-white px-2 py-0.5 rounded-full ml-2">Holiday</span>}</div>
                 <div className="text-[18px] font-bold mt-1">{parseISO(editing.date).toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
-                <div className="flex gap-2 mt-3">
-                  <select value={editing.location} onChange={e=>{const newLoc=e.target.value as any; const auto=getAutoPortNote(editing.portName, editing.arrivalTime, editing.departureTime, newLoc); setEditing({...editing, location:newLoc, notes: auto ? auto : editing.notes});}} className="bg-white/10 border border-white/20 rounded-full px-3 py-1.5 text-[12px] text-white"><option className="text-black" value="At Sea">At Sea</option><option className="text-black" value="At Port">At Port</option></select>
-                  <select value={editing.duty} onChange={e=>{const nd=e.target.value as any; if(nd==='Rest Day'){setEditing({...editing,duty:nd,breakdown:emptyBreakdown(),notes:editing.notes||'Rest Day - No Work (24h Rest)'});}else{setEditing({...editing,duty:nd});}}} className="bg-white/10 border border-white/20 rounded-full px-3 py-1.5 text-[12px] text-white"><option className="text-black" value="Regular Work">Regular Work</option><option className="text-black" value="Watch Duty">Watch Duty</option><option className="text-black" value="Standby / Extra">Standby / Extra</option><option className="text-black" value="Rest Day">🌙 No Work - Rest Day</option></select>
-                  <select value={editing.watchSlot} onChange={e=>setEditing({...editing,watchSlot:e.target.value})} className="bg-[#f97316] text-white rounded-full px-3 py-1.5 text-[12px] font-semibold max-w-[180px]">{WATCH_SLOTS.map(s=><option key={s} value={s} className="text-black">{s}</option>)}</select>
+                <div className="grid grid-cols-2 gap-2 mt-3">
+                  <select value={editing.location} onChange={e=>{const newLoc=e.target.value as any; const auto=getAutoPortNote(editing.portName, editing.arrivalTime, editing.departureTime, newLoc); setEditing({...editing, location:newLoc, notes: auto ? auto : editing.notes});}} className="bg-white/10 border border-white/20 rounded-full px-3 py-2 text-[12px] text-white w-full truncate"><option className="text-black" value="At Sea">At Sea</option><option className="text-black" value="At Port">At Port</option></select>
+                  <select value={editing.duty} onChange={e=>{const nd=e.target.value as any; if(nd==='Rest Day'){setEditing({...editing,duty:nd,breakdown:emptyBreakdown(),notes:editing.notes||'Rest Day - No Work (24h Rest)'});}else{setEditing({...editing,duty:nd});}}} className="bg-white/10 border border-white/20 rounded-full px-3 py-2 text-[12px] text-white w-full truncate"><option className="text-black" value="Regular Work">Regular Work</option><option className="text-black" value="Watch Duty">Watch Duty</option><option className="text-black" value="Standby / Extra">Standby / Extra</option><option className="text-black" value="Rest Day">🌙 No Work - Rest Day</option></select>
+                  <select value={editing.watchSlot} onChange={e=>setEditing({...editing,watchSlot:e.target.value})} className="bg-[#f97316] text-white rounded-full px-3 py-2 text-[12px] font-semibold w-full col-span-2 truncate">{WATCH_SLOTS.map(s=><option key={s} value={s} className="text-black">{s}</option>)}</select>
                 </div>
               </div>
               <button onClick={()=>{setEditing(null);}} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white">✕</button>
@@ -756,48 +867,63 @@ setEditing(null);
                     <div className="text-[32px]">🌙</div><div className="text-[16px] font-bold mt-2">Rest Day - No Work</div><div className="text-[12px] opacity-60 mt-1">24h Rest will be recorded</div>
                   </div>
                 ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {BREAKDOWN_FIELDS.map(f=>{
+                <>
+                {/* 5 Tabs for Mobile - horizontally scrollable */}
+                <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 snap-x scrollbar-hide" style={{scrollbarWidth:'none'}}>
+                  {TASK_TABS.map(tab=>{
+                    const count = BREAKDOWN_FIELDS.filter(f=>f.tab===tab.id).reduce((acc,f)=>acc+(editing.breakdown[f.key]||0),0);
+                    const isActive = activeTaskTab===tab.id;
+                    return (
+                      <button key={tab.id} onClick={()=>setActiveTaskTab(tab.id)} className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-[11px] font-bold whitespace-nowrap shrink-0 snap-start transition ${isActive?'bg-[#f97316] text-white shadow-md':'bg-black/5 dark:bg-white/10 text-slate-700 dark:text-slate-200'}`}>
+                        <span>{tab.icon}</span> {tab.label} {count>0 && <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-mono ${isActive?'bg-white text-[#f97316]':'bg-[#f97316] text-white'}`}>{count.toFixed(1)}h</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {BREAKDOWN_FIELDS.filter(f=>f.tab===activeTaskTab).map(f=>{
                     const val=editing.breakdown[f.key]||0;
                     return (
-                      <div key={f.key} className={`border rounded-[16px] p-3 flex flex-col justify-between ${isDark?'bg-[#0f172a] border border-white/10':'bg-slate-50 border-slate-200'}`}>
+                      <div key={f.key} className={`border rounded-[16px] p-3 flex flex-col justify-between ${isDark?'bg-[#0f172a] border-white/10':'bg-slate-50 border-slate-200'}`}>
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-[11px] font-semibold flex items-center gap-1.5 truncate">{f.key==='watch'?<ModernBinocularIcon />:<span>{f.icon}</span>}<span className="truncate">{f.label}</span></span>
-                          <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${val>0?'bg-[#f97316] text-white':'bg-black/10 opacity-60'}`}>{val.toFixed(1)}h</span>
+                          <span className="text-[11px] font-semibold flex items-center gap-1.5 truncate">{f.key==='bridgeLookout' || f.key==='watch'?<ModernBinocularIcon />:<span>{f.icon}</span>}<span className="truncate">{f.label}</span></span>
+                          <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full shrink-0 ${val>0?'bg-[#f97316] text-white':'bg-black/10 opacity-60'}`}>{val.toFixed(1)}h</span>
                         </div>
                         <div className="mt-3 flex items-center justify-between gap-2 bg-black/5 dark:bg-white/5 rounded-full px-2 py-1.5">
                           <button onClick={()=>updateBreakdown(f.key,-0.5)} className={`w-8 h-8 rounded-full flex items-center justify-center text-[16px] font-bold shrink-0 transition active:scale-95 ${isDark?'bg-white/10 hover:bg-white/20 text-white':'bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 shadow-sm'}`}>−</button>
-                          <input type="number" step="0.5" value={val} onChange={e=>setBreakdownValue(f.key,parseFloat(e.target.value))} className={`flex-1 bg-transparent text-center font-bold text-[18px] outline-none min-w-0 ${isDark?'text-white':'text-slate-900'}`} />
+                          <input type="number" step="0.5" min={0} max={24} value={val} onChange={e=>setBreakdownValue(f.key,parseFloat(e.target.value))} className={`flex-1 bg-transparent text-center font-bold text-[18px] outline-none min-w-0 ${isDark?'text-white':'text-slate-900'}`} />
                           <button onClick={()=>updateBreakdown(f.key,0.5)} className="w-8 h-8 rounded-full bg-[#f97316] text-white flex items-center justify-center text-[16px] font-bold shrink-0 shadow-md hover:bg-[#ea6d12] transition active:scale-95">+</button>
                         </div>
                       </div>
                     );
                   })}
                 </div>
+                <div className="mt-3 text-[11px] text-center opacity-60">Showing {BREAKDOWN_FIELDS.filter(f=>f.tab===activeTaskTab).length} tasks in {TASK_TABS.find(t=>t.id===activeTaskTab)?.label} • Total {Object.values(editing.breakdown).reduce((a,v)=>a+(Number(v)||0),0).toFixed(1)}h</div>
+                </>
                 )}
                 <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className={`border rounded-[14px] p-4 ${isDark?'bg-[#0f172a] border border-white/10':'bg-slate-50 border-slate-200'}`}>
+                  <div className={`border rounded-[14px] p-4 ${isDark?'bg-[#0f172a] border-white/10':'bg-slate-50 border-slate-200'}`}>
                     <div className="text-[11px] uppercase opacity-90">Port & Times (True 24H)</div>
-                    <div className="mt-3"><label className="text-[10px] opacity-80">Port Name</label><input value={editing.portName} onChange={e=>{const pn=e.target.value; const auto=getAutoPortNote(pn, editing.arrivalTime, editing.departureTime, editing.location); setEditing({...editing, portName:pn, notes: auto ? auto : editing.notes});}} placeholder="Manila, PH" className={`mt-1 w-full border rounded-full px-4 py-2 text-[13px] ${isDark?'bg-white/5 border-white/10 text-white':'bg-white border-slate-200'}`} /></div>
+                    <div className="mt-3"><label className="text-[10px] opacity-80">Port Name</label><input value={editing.portName} onChange={e=>{const pn=e.target.value; const auto=getAutoPortNote(pn, editing.arrivalTime, editing.departureTime, editing.location); setEditing({...editing, portName:pn, notes: auto ? (editing.notes? `${auto} • ${editing.notes}`.slice(0,200) : auto) : editing.notes});}} placeholder="Manila, PH" className={`mt-1 w-full border rounded-full px-4 py-2 text-[13px] ${isDark?'bg-white/5 border-white/10 text-white':'bg-white border-slate-200'}`} /></div>
                     <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className={`border rounded-[10px] p-3 ${isDark?'bg-white/[0.03] border-white/10':'bg-white border-slate-200'}`}><label className="text-[10px] uppercase font-semibold opacity-90 flex items-center gap-1 whitespace-nowrap">🚢 Arrival Time <span className="bg-blue-500/20 text-green-400 px-1.5 py-0.5 rounded-full text-[8px]">24H</span></label><div className="mt-2"><Time24Input value={editing.arrivalTime} onChange={v=>{const auto=getAutoPortNote(editing.portName, v, editing.departureTime, editing.location); setEditing({...editing, arrivalTime:v, notes: auto ? auto : editing.notes});}} isDark={isDark} /></div><div className="mt-2 flex gap-1"><button onClick={()=>{const nv=format24H_HM(new Date()); const auto=getAutoPortNote(editing.portName, nv, editing.departureTime, editing.location); setEditing({...editing,arrivalTime:nv, notes: auto ? auto : editing.notes});}} className={`text-[10px] px-2 py-1 rounded-full ${isDark?'bg-white text-black':'bg-slate-900 text-white'}`}>Now {format24H_HM(now24H)}H</button><button onClick={()=>{const auto=getAutoPortNote(editing.portName, '', editing.departureTime, editing.location); setEditing({...editing,arrivalTime:'', notes: auto ? auto : editing.notes});}} className={`text-[10px] border px-2 py-1 rounded-full ${isDark?'bg-white/10 border-white/20':'bg-slate-100 border-slate-200'}`}>Clear</button></div></div>
-                      <div className={`border rounded-[10px] p-3 ${isDark?'bg-white/[0.03] border-white/10':'bg-white border-slate-200'}`}><label className="text-[10px] uppercase font-semibold opacity-90 flex items-center gap-1 whitespace-nowrap">🛳️ Departure Time <span className="bg-blue-500/20 text-green-400 px-1.5 py-0.5 rounded-full text-[8px]">24H</span></label><div className="mt-2"><Time24Input value={editing.departureTime} onChange={v=>{const auto=getAutoPortNote(editing.portName, editing.arrivalTime, v, editing.location); setEditing({...editing, departureTime:v, notes: auto ? auto : editing.notes});}} isDark={isDark} /></div><div className="mt-2 flex gap-1"><button onClick={()=>{const nv=format24H_HM(new Date()); const auto=getAutoPortNote(editing.portName, editing.arrivalTime, nv, editing.location); setEditing({...editing,departureTime:nv, notes: auto ? auto : editing.notes});}} className={`text-[10px] px-2 py-1 rounded-full ${isDark?'bg-white text-black':'bg-slate-900 text-white'}`}>Now {format24H_HM(now24H)}H</button><button onClick={()=>{const auto=getAutoPortNote(editing.portName, editing.arrivalTime, '', editing.location); setEditing({...editing,departureTime:'', notes: auto ? auto : editing.notes});}} className={`text-[10px] border px-2 py-1 rounded-full ${isDark?'bg-white/10 border-white/20':'bg-slate-100 border-slate-200'}`}>Clear</button></div></div>
+                      <div className={`border rounded-[10px] p-3 ${isDark?'bg-white/[0.03] border-white/10':'bg-white border-slate-200'}`}><label className="text-[10px] uppercase font-semibold opacity-90 flex items-center gap-1 whitespace-nowrap">🚢 Arrival Time <span className="bg-blue-500/20 text-green-400 px-1.5 py-0.5 rounded-full text-[8px]">24H</span></label><div className="mt-2"><Time24Input value={editing.arrivalTime} onChange={v=>{const auto=getAutoPortNote(editing.portName, v, editing.departureTime, editing.location); setEditing({...editing, arrivalTime:v, notes: auto ? auto : editing.notes});}} isDark={isDark} /></div><div className="mt-2 flex gap-1"><button onClick={()=>{const nv=format24H_HM(now24H); const auto=getAutoPortNote(editing.portName, nv, editing.departureTime, editing.location); setEditing({...editing,arrivalTime:nv, notes: auto ? auto : editing.notes});}} className={`text-[10px] px-2 py-1 rounded-full ${isDark?'bg-white text-black':'bg-slate-900 text-white'}`}>Now {format24H_HM(now24H)}H</button><button onClick={()=>{setEditing({...editing,arrivalTime:''});}} className={`text-[10px] border px-2 py-1 rounded-full ${isDark?'bg-white/10 border-white/20':'bg-slate-100 border-slate-200'}`}>Clear</button></div></div>
+                      <div className={`border rounded-[10px] p-3 ${isDark?'bg-white/[0.03] border-white/10':'bg-white border-slate-200'}`}><label className="text-[10px] uppercase font-semibold opacity-90 flex items-center gap-1 whitespace-nowrap">🛳️ Departure Time <span className="bg-blue-500/20 text-green-400 px-1.5 py-0.5 rounded-full text-[8px]">24H</span></label><div className="mt-2"><Time24Input value={editing.departureTime} onChange={v=>{const auto=getAutoPortNote(editing.portName, editing.arrivalTime, v, editing.location); setEditing({...editing, departureTime:v, notes: auto ? auto : editing.notes});}} isDark={isDark} /></div><div className="mt-2 flex gap-1"><button onClick={()=>{const nv=format24H_HM(now24H); const auto=getAutoPortNote(editing.portName, editing.arrivalTime, nv, editing.location); setEditing({...editing,departureTime:nv, notes: auto ? auto : editing.notes});}} className={`text-[10px] px-2 py-1 rounded-full ${isDark?'bg-white text-black':'bg-slate-900 text-white'}`}>Now {format24H_HM(now24H)}H</button><button onClick={()=>{setEditing({...editing,departureTime:'',});}} className={`text-[10px] border px-2 py-1 rounded-full ${isDark?'bg-white/10 border-white/20':'bg-slate-100 border-slate-200'}`}>Clear</button></div></div>
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <div className={`border rounded-[14px] p-4 ${isDark?'bg-[#0f172a] border border-white/10':'bg-slate-50 border-slate-200'}`}>
+                    <div className={`border rounded-[14px] p-4 ${isDark?'bg-[#0f172a] border-white/10':'bg-slate-50 border-slate-200'}`}>
                       <div className="text-[11px] uppercase opacity-90">Day Summary (True 24H)</div>
                       <div className="mt-2 flex items-baseline gap-2"><span className="text-[28px] font-bold">{liveTotal.toFixed(1)}h</span><span className="text-[12px] opacity-60">work / {liveRest.toFixed(1)}h rest</span></div>
                       {liveOTPreview&&<div className={`mt-2 text-[11px] px-3 py-2 rounded-full border ${liveOTPreview.multiplier===2?'bg-red-500/20 text-red-400 border-red-500/30':liveOTPreview.multiplier>1?'bg-orange-500/20 text-orange-400 border-orange-500/30':'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'}`}>{liveOTPreview.type} → {liveOTPreview.pay.toFixed(1)}h pay</div>}
                     </div>
-                    <div className={`border rounded-[14px] p-4 ${isDark?'bg-[#0f172a] border border-white/10':'bg-slate-50 border-slate-200'}`}>
+                    <div className={`border rounded-[14px] p-4 ${isDark?'bg-[#0f172a] border-white/10':'bg-slate-50 border-slate-200'}`}>
                       <label className="text-[10px] uppercase opacity-90">Notes</label><textarea value={editing.notes} onChange={e=>setEditing({...editing,notes:e.target.value})} placeholder="Cargo operation, mooring, etc." className={`mt-2 w-full border rounded-[12px] px-3 py-2 text-[12px] min-h-[60px] ${isDark?'bg-white/5 border-white/10 text-white':'bg-white border-slate-200'}`} />
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div className={`border-t px-7 py-4 flex items-center justify-between ${isDark?'bg-[#0f172a] border border-white/10':'bg-slate-50 border-slate-200'}`}>
+            <div className={`border-t px-7 py-4 flex items-center justify-between ${isDark?'bg-[#0f172a] border-white/10':'bg-slate-50 border-slate-200'}`}>
               <button onClick={handleDelete} className="text-[11px] text-red-400 border border-red-500/30 rounded-full px-4 py-2">Delete Entry</button>
               <div className="flex gap-2">
                 <button onClick={()=>{setEditing(null);}} className={`px-5 py-2.5 rounded-full border text-[12px] ${isDark?'border-white/20':'border-slate-200'}`}>Cancel</button>
@@ -809,27 +935,30 @@ setEditing(null);
       )}
 
       {showTimeModal && (
-        <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center">
+        <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={()=>setShowTimeModal(false)} />
-          <div className={`relative w-full md:max-w-[520px] rounded-t-[24px] md:rounded-[24px] shadow-2xl max-h-[90vh] overflow-auto border ${isDark?'bg-[#121c33] border-white/10':'bg-white border-slate-200'}`}>
+          <div className={`relative w-full md:max-w-[420px] rounded-t-[24px] md:rounded-[24px] shadow-2xl max-h-[90vh] overflow-auto border ${isDark?'bg-[#121c33] border-white/10':'bg-white border-slate-200'}`}>
             <div className={`sticky top-0 border-b px-6 py-5 flex items-center justify-between ${isDark?'bg-[#121c33] border-white/10':'bg-white border-slate-200'}`}>
-              <div><div className="text-[18px] font-bold">🕒 Ship Time / GMT Settings</div><div className="text-[11px] opacity-50">Independent of phone auto time • For accurate logs</div></div>
+              <div><div className="text-[18px] font-bold">🕒 Ship Time Settings</div><div className="text-[11px] opacity-50">GMT Offset • True 24H • DMW Rules</div></div>
               <button onClick={()=>setShowTimeModal(false)} className={`w-8 h-8 rounded-full flex items-center justify-center ${isDark?'bg-white/10':'bg-slate-100'}`}>✕</button>
             </div>
-            <div className="p-6 space-y-5">
-              <div className={`border rounded-[12px] p-4 ${isDark?'bg-[#0f172a] border-white/10':'bg-slate-50 border-slate-200'}`}>
-                <div className="flex items-center justify-between">
-                  <div><div className="text-[13px] font-bold">Use Ship Time (Manual GMT)</div><div className="text-[11px] opacity-60 mt-1">When ON, app clock uses GMT offset, not phone system. Prevents errors when crew turns off auto date/time.</div></div>
-                  <button onClick={()=>setTimeSettings({...timeSettings, shipTimeEnabled: !timeSettings.shipTimeEnabled})} className={`w-12 h-7 rounded-full p-1 transition ${timeSettings.shipTimeEnabled?'bg-[#f97316]':'bg-slate-300'}`}><div className={`w-5 h-5 bg-white rounded-full shadow transition ${timeSettings.shipTimeEnabled?'translate-x-5':'translate-x-0'}`} /></button>
-                </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="text-[11px] uppercase font-semibold opacity-70">GMT Offset</label>
+                <select value={timeSettings.gmtOffset} onChange={e=>setTimeSettings({...timeSettings,gmtOffset:parseFloat(e.target.value)})} className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[13px] ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`}>
+                  {GMT_OFFSETS.map(o=><option key={o} value={o}>{formatGMT(o)} (GMT{o>=0?`+${o}`:o})</option>)}
+                </select>
               </div>
-              <div><label className="text-[11px] uppercase font-semibold opacity-70">GMT Offset</label><select value={timeSettings.gmtOffset} onChange={e=>setTimeSettings({...timeSettings, gmtOffset: parseFloat(e.target.value)})} className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[14px] font-bold ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`}>
-                  {GMT_OFFSETS.map(off=><option key={off} value={off}>{formatGMT(off)}</option>)}
-                </select></div>
-              <div><label className="text-[11px] uppercase font-semibold opacity-70">Label</label><input value={timeSettings.label} onChange={e=>setTimeSettings({...timeSettings, label: e.target.value})} placeholder="Ship Time" className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[13px] ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`} /></div>
-              <div className={`border rounded-[12px] p-4 grid grid-cols-2 gap-4 ${isDark?'bg-white/[0.03] border-white/10':'bg-slate-50 border-slate-200'}`}>
-                <div><div className="text-[10px] uppercase opacity-50">Device Time</div><div className="text-[14px] font-mono font-bold mt-1">{format24H(new Date())}</div></div>
-                <div><div className="text-[10px] uppercase opacity-50">Ship Time ({formatGMT(timeSettings.gmtOffset)})</div><div className="text-[14px] font-mono font-bold mt-1 text-[#f97316]">{format24H(getShipTimeNow(timeSettings.gmtOffset, true))}</div></div>
+              <div className="flex items-center justify-between border rounded-[12px] p-4">
+                <div><div className="text-[13px] font-bold">Enable Ship Time</div><div className="text-[11px] opacity-60">Use GMT offset for all times</div></div>
+                <button onClick={()=>setTimeSettings({...timeSettings,shipTimeEnabled:!timeSettings.shipTimeEnabled})} className={`w-12 h-6 rounded-full p-1 transition ${timeSettings.shipTimeEnabled?'bg-[#f97316]':'bg-black/20'}`}><div className={`w-4 h-4 bg-white rounded-full transition ${timeSettings.shipTimeEnabled?'translate-x-6':'translate-x-0'}`} /></button>
+              </div>
+              <div className={`border rounded-[12px] p-4 ${isDark?'bg-[#0f172a] border-white/10':'bg-slate-50 border-slate-200'}`}>
+                <div className="text-[11px] uppercase opacity-60 mb-2">Preview</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><div className="text-[10px] uppercase opacity-50">Device Time</div><div className="text-[14px] font-mono font-bold mt-1">{format24H(new Date())}</div></div>
+                  <div><div className="text-[10px] uppercase opacity-50">Ship Time ({formatGMT(timeSettings.gmtOffset)})</div><div className="text-[14px] font-mono font-bold mt-1 text-[#f97316]">{format24H(getShipTimeNow(timeSettings.gmtOffset, true))}</div></div>
+                </div>
               </div>
             </div>
             <div className={`sticky bottom-0 border-t px-6 py-4 flex justify-end ${isDark?'bg-[#121c33] border-white/10':'bg-white border-slate-200'}`}><button onClick={()=>setShowTimeModal(false)} className="px-6 py-2.5 rounded-full bg-[#f97316] text-white text-[12px] font-bold">Save Settings</button></div>
@@ -838,7 +967,7 @@ setEditing(null);
       )}
                   {showShareModal && (
         <div className="fixed inset-0 z-[100] flex items-start md:items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto" onClick={()=>setShowShareModal(false)}>
-          <div className={`w-full max-w-[420px] rounded-[20px] shadow-2xl border my-4 md:my-8 max-h-[90vh] flex flex-col overflow-hidden ${isDark?'bg-[#121c33] border border-white/10':'bg-white border-slate-200'}`} onClick={e=>e.stopPropagation()}>
+          <div className={`w-full max-w-[420px] rounded-[20px] shadow-2xl border my-4 md:my-8 max-h-[90vh] flex flex-col overflow-hidden ${isDark?'bg-[#121c33] border-white/10':'bg-white border-slate-200'}`} onClick={e=>e.stopPropagation()}>
             <div className={`px-6 py-4 flex items-center justify-between border-b shrink-0 ${isDark?'border-white/10':'border-slate-200'}`}>
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-[#0f172a] border border-white/10 rounded-[10px] flex items-center justify-center"><AnchorLogoIcon /></div>
