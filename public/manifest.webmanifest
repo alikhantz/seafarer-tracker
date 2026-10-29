@@ -1,14 +1,17 @@
 {
   "name": "SeaTime - Seafarer Tracker",
   "short_name": "SeaTime",
-  "description": "Detailed Breakdown Tracker - True 24H - DMW 40h/week",
+  "description": "Detailed Breakdown Tracker \u2022 TRUE 24H \u2022 DMW 40h/week",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#070e1f",
-  "theme_color": "#f97316",
+  "theme_color": "#0f172a",
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/anchor.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
   ]
 }
