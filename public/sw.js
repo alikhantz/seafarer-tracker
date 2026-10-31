@@ -1,5 +1,5 @@
 const CACHE_NAME = 'seatime-v2';
-const URLS_TO_CACHE = ['/', '/index.html', '/manifest.json', '/manifest.webmanifest'];
+const URLS_TO_CACHE = ['/', '/index.html', '/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

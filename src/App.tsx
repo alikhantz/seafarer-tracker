@@ -1,32 +1,89 @@
-import { useState, useEffect, useMemo } from 'react';
-
-const AnchorLogoIcon = () => (
-  <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="20" cy="8" r="5" fill="none" stroke="white" strokeWidth="2.2"/>
-    <path d="M20 13 L20 30" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-    <path d="M10 17.5 L30 17.5" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-    <path d="M12 27 Q20 35 28 27" stroke="white" strokeWidth="2.2" fill="none" strokeLinecap="round"/>
-    <path d="M10.5 24.5 L13.5 27.5 L9.5 28.5 Z" fill="white"/>
-    <path d="M29.5 24.5 L26.5 27.5 L30.5 28.5 Z" fill="white"/>
-  </svg>
-);
-
-const ModernBinocularIcon = () => (
-  <svg viewBox="0 0 32 20" className="w-6 h-5" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M2 3 Q2 1 4 1 L9.5 1 Q12 1 12 3 L13 14 Q13 16.5 10.5 16.5 L3.5 16.5 Q1 16.5 1 14 Z" fill="#0f172a" stroke="white" strokeWidth="0.9"/>
-    <path d="M30 3 Q30 1 28 1 L22.5 1 Q20 1 20 3 L19 14 Q19 16.5 21.5 16.5 L28.5 16.5 Q31 16.5 31 14 Z" fill="#0f172a" stroke="white" strokeWidth="0.9"/>
-    <rect x="12" y="2" width="8" height="3" rx="1.2" fill="#1e293b" stroke="white" strokeWidth="0.6"/>
-    <ellipse cx="7" cy="12" rx="4" ry="3.6" fill="#0ea5e9" stroke="#0284c7" strokeWidth="0.7"/>
-    <ellipse cx="25" cy="12" rx="4" ry="3.6" fill="#0ea5e9" stroke="#0284c7" strokeWidth="0.7"/>
-    <ellipse cx="7" cy="12" rx="2.8" ry="2.2" fill="#38bdf8" opacity="0.5"/>
-    <ellipse cx="25" cy="12" rx="2.8" ry="2.2" fill="#38bdf8" opacity="0.5"/>
-    <path d="M5.2 10.2 C5.2 9 6.2 8.2 7.4 8.2 C7.4 8.2 6.6 8.8 6.2 9.6 C5.8 10.2 5.6 10.8 5.2 10.2 Z" fill="white" opacity="0.95"/>
-    <path d="M23.2 10.2 C23.2 9 24.2 8.2 25.4 8.2 C25.4 8.2 24.6 8.8 24.2 9.6 C23.8 10.2 23.6 10.8 23.2 10.2 Z" fill="white" opacity="0.95"/>
-  </svg>
-);
+import { useState, useEffect, useMemo, useCallback } from 'react';
 
 const fontLinks = `
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Instrument+Sans:wght@400;500;600&display=swap');
+`;
+
+const printStyles = `
+.print-only { display: none !important; }
+
+@media print {
+  @page {
+    margin: 8mm;
+    size: A4;
+  }
+
+  /* Force absolute white background and black text globally */
+  html, body, div, span, p, h1, h2, h3, label, table, th, td {
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide app header, navigation, sidebars, footers, and interactive buttons */
+  header, nav, aside, footer, .no-print, button, .fixed {
+    display: none !important;
+  }
+
+  /* Hide the left sidebar/summary column (col-span-3) and calendar view */
+  .lg\\:col-span-3, 
+  .calendar-print-hide {
+    display: none !important;
+  }
+
+  /* Expand the right column containing the detailed breakdown table to full width */
+  .lg\\:col-span-9 {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Ensure the print-only summary block shows clearly */
+  .print-only {
+    display: block !important;
+    visibility: visible !important;
+    margin-bottom: 15px !important;
+  }
+
+  /* Clean up card wrappers */
+  .rounded-\\[16px\\] , .rounded-\\[20px\\] , div[class*="bg-"] {
+    background: #ffffff !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  /* Professional Table Styling for Print */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 10px !important;
+  }
+
+  th {
+    background: #f1f5f9 !important;
+    color: #000000 !important;
+    font-weight: 700 !important;
+    border: 1px solid #000000 !important;
+    padding: 6px 8px !important;
+    font-size: 10px !important;
+    text-transform: uppercase !important;
+  }
+
+  td {
+    border: 1px solid #cbd5e1 !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+    padding: 5px 8px !important;
+    font-size: 11px !important;
+  }
+}
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 `;
 
 type Breakdown = {
@@ -46,45 +103,76 @@ type Rank = 'Master / Captain' | 'Chief Mate / Chief Officer' | 'Second Mate / S
 type Department = 'Deck' | 'Engine' | 'Galley';
 type VesselInfo = { name: string; type: string; imo: string; flag: string; masterName: string; };
 type SeafarerInfo = { name: string; employeeNo: string; department: Department; };
-type TimeSettings = { gmtOffset: number; shipTimeEnabled: boolean; label: string; };
+type TimeSettings = { gmtOffset: number; shipTimeEnabled: boolean; label: string; autoSyncDevice: boolean; };
 
+function getDeviceGMTOffset(){
+  const off = -new Date().getTimezoneOffset()/60;
+  return Math.round(off*100)/100;
+}
+function getDeviceTimeZone(){
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { return 'Local'; }
+}
 const VESSEL_TYPES = ['','Container Ship','Bulk Carrier','Oil Tanker','Chemical Tanker','LNG Carrier','LPG Carrier','General Cargo','Ro-Ro / Vehicle Carrier','Passenger / Cruise','Offshore Supply Vessel','Tug Boat','Fishing Vessel','Other'];
 const FLAG_REGISTRIES = ['','Panama','Liberia','Marshall Islands','Hong Kong','Singapore','Malta','Bahamas','Greece','Japan','China','Philippines','USA','UK','Norway','Denmark','Germany','Italy','South Korea','Cyprus','Isle of Man','Other'];
 const RANKS: { label: string, dept: 'Deck'|'Engine'|'Galley', icon: string }[] = [
-  { label: 'Master / Captain', dept: 'Deck', icon: '👨‍✈️' },{ label: 'Chief Mate / Chief Officer', dept: 'Deck', icon: '🧭' },{ label: 'Second Mate / Second Officer', dept: 'Deck', icon: '🗺️' },{ label: 'Third Mate / Third Officer', dept: 'Deck', icon: '📡' },{ label: 'Deck Cadet', dept: 'Deck', icon: '🎓' },{ label: 'Bosun / Boatswain', dept: 'Deck', icon: '🪢' },{ label: 'Able Seaman (AB)', dept: 'Deck', icon: '🛞' },{ label: 'Ordinary Seaman (OS)', dept: 'Deck', icon: '⚓' },
+  { label: 'Master / Captain', dept: 'Deck', icon: '👨‍✈️' },{ label: 'Chief Mate / Chief Officer', dept: 'Deck', icon: '🧭' },{ label: 'Second Mate / Second Officer', dept: 'Deck', icon: '🗺️' },{ label: 'Third Mate / Third Officer', dept: 'Deck', icon: '📡' },{ label: 'Deck Cadet', dept: 'Deck', icon: '🎓' },{ label: 'Bosun / Boatswain', dept: 'Deck', icon: '🪢' },{ label: 'Able Seaman (AB)', dept: 'Deck', icon: '☸️' },{ label: 'Ordinary Seaman (OS)', dept: 'Deck', icon: '⚓' },
   { label: 'Chief Engineer', dept: 'Engine', icon: '⚙️' },{ label: 'Second Engineer', dept: 'Engine', icon: '🔧' },{ label: 'Third Engineer', dept: 'Engine', icon: '🔩' },{ label: 'Fourth Engineer', dept: 'Engine', icon: '🛠️' },{ label: 'Electrical Officer (ETO)', dept: 'Engine', icon: '💡' },{ label: 'Fitter', dept: 'Engine', icon: '🔨' },{ label: 'Oiler / Motorman', dept: 'Engine', icon: '⛽' },{ label: 'Wiper', dept: 'Engine', icon: '🧹' },{ label: 'Engine Cadet', dept: 'Engine', icon: '🎓' },
   { label: 'Chief Steward', dept: 'Galley', icon: '👨‍🍳' },{ label: 'Chief Cook', dept: 'Galley', icon: '🍳' },{ label: 'Second Cook', dept: 'Galley', icon: '🥘' },{ label: 'Messman', dept: 'Galley', icon: '🍽️' },{ label: 'Steward / Utility', dept: 'Galley', icon: '🧼' },
 ];
-const BREAKDOWN_FIELDS: { key: keyof Breakdown; label: string; short: string; icon: string; tab: 'deck'|'engine'|'galley'|'drills'|'others'; }[] = [
-  // Deck Department
-  { key: 'deckWork', label: 'Deck Work', short: 'Deck Work', icon: '🛠️', tab: 'deck' },
-  { key: 'watch', label: 'Watch Duty', short: 'Watch', icon: '👀', tab: 'deck' },
-  { key: 'bridgeLookout', label: 'Bridge Lookout', short: 'Bridge Lookout', icon: '🔭', tab: 'deck' },
-  { key: 'mooring', label: 'Mooring / Unmooring', short: 'Mooring', icon: '⚓', tab: 'deck' },
-  { key: 'cargo', label: 'Cargo Operations', short: 'Cargo', icon: '📦', tab: 'deck' },
-  { key: 'provisionDeck', label: 'Deck Store', short: 'Deck Store', icon: '📦', tab: 'deck' },
-  { key: 'garbage', label: 'Garbage Disposal', short: 'Garbage', icon: '♻️', tab: 'deck' },
-  // Engine Department
-  { key: 'engineWork', label: 'Engine Work', short: 'Engine Work', icon: '🔧', tab: 'engine' },
-  { key: 'engineWatch', label: 'Engine Watch', short: 'Engine Watch', icon: '⚙️', tab: 'engine' },
-  { key: 'bunkering', label: 'Bunkering', short: 'Bunkering', icon: '⛽', tab: 'engine' },
-  { key: 'provisionEngine', label: 'Engine Store', short: 'Engine Store', icon: '⚙️', tab: 'engine' },
-  // Galley Department
-  { key: 'galleyWork', label: 'Galley Work', short: 'Galley Work', icon: '🍳', tab: 'galley' },
-  { key: 'cooking', label: 'Cooking / Food Prep', short: 'Cooking', icon: '🥘', tab: 'galley' },
-  { key: 'messService', label: 'Mess Service / Cleaning', short: 'Mess Service', icon: '🍽️', tab: 'galley' },
-  { key: 'provisionGalley', label: 'Galley Store/Provision', short: 'Galley Store', icon: '🧑‍🍳', tab: 'galley' },
-  // Drills
-  { key: 'drills', label: 'Drills / Training', short: 'Drills', icon: '🛟', tab: 'drills' },
-  { key: 'standby', label: 'Standby / Extra', short: 'Standby', icon: '⏳', tab: 'drills' },
-  // Others
-  { key: 'other', label: 'Other Duties', short: 'Other', icon: '🔧', tab: 'others' },
+
+const RANK_ABBR: Record<string,string> = {
+  'Master / Captain': 'CAPT',
+  'Chief Mate / Chief Officer': 'C-OFF',
+  'Second Mate / Second Officer': '2-OFF',
+  'Third Mate / Third Officer': '3-OFF',
+  'Deck Cadet': 'D-CDT',
+  'Bosun / Boatswain': 'BSN',
+  'Able Seaman (AB)': 'AB',
+  'Ordinary Seaman (OS)': 'OS',
+  'Chief Engineer': 'C-ENG',
+  'Second Engineer': '2-ENG',
+  'Third Engineer': '3-ENG',
+  'Fourth Engineer': '4-ENG',
+  'Electrical Officer (ETO)': 'ETO',
+  'Fitter': 'FIT',
+  'Oiler / Motorman': 'OLR',
+  'Wiper': 'WPR',
+  'Engine Cadet': 'E-CDT',
+  'Chief Steward': 'C-STWD',
+  'Chief Cook': 'C-CK',
+  'Second Cook': '2-CK',
+  'Messman': 'MSM',
+  'Steward / Utility': 'STWD',
+};
+function getRankAbbr(rank: string): string {
+  return RANK_ABBR[rank] || (rank || 'Rank').replace(/[^A-Z0-9]/gi, '').substring(0,6).toUpperCase() || 'RANK';
+}
+
+const BREAKDOWN_FIELDS: { key: keyof Breakdown; label: string; short: string; tab: 'deck'|'engine'|'galley'|'drills'|'others'; }[] = [
+  { key: 'deckWork', label: 'Deck Work', short: 'Deck Work' , tab: 'deck' },
+  { key: 'watch', label: 'Watch Duty', short: 'Watch', tab: 'deck' },
+  { key: 'bridgeLookout', label: 'Bridge Lookout', short: 'Bridge Lookout', tab: 'deck' },
+  { key: 'mooring', label: 'Mooring / Unmooring', short: 'Mooring', tab: 'deck' },
+  { key: 'cargo', label: 'Cargo Operations', short: 'Cargo', tab: 'deck' },
+  { key: 'provisionDeck', label: 'Deck Store', short: 'Deck Store', tab: 'deck' },
+  { key: 'garbage', label: 'Garbage Disposal', short: 'Garbage', tab: 'deck' },
+  { key: 'engineWork', label: 'Engine Work', short: 'Engine Work', tab: 'engine' },
+  { key: 'engineWatch', label: 'Engine Watch', short: 'Engine Watch', tab: 'engine' },
+  { key: 'bunkering', label: 'Bunkering', short: 'Bunkering',  tab: 'engine' },
+  { key: 'provisionEngine', label: 'Engine Store', short: 'Engine Store', tab: 'engine' },
+  { key: 'galleyWork', label: 'Galley Work', short: 'Galley Work', tab: 'galley' },
+  { key: 'cooking', label: 'Cooking / Food Prep', short: 'Cooking', tab: 'galley' },
+  { key: 'messService', label: 'Mess Service / Cleaning', short: 'Mess Service', tab: 'galley' },
+  { key: 'provisionGalley', label: 'Galley Store/Provision', short: 'Galley Store', tab: 'galley' },
+  { key: 'drills', label: 'Drills / Training', short: 'Drills', tab: 'drills' },
+  { key: 'standby', label: 'Standby / Extra', short: 'Standby', tab: 'drills' },
+  { key: 'other', label: 'Other Duties', short: 'Other', tab: 'others' },
 ];
 
 const TASK_TABS: { id: 'deck'|'engine'|'galley'|'drills'|'others'; label: string; short: string; icon: string; }[] = [
   { id: 'deck', label: 'Deck Dept', short: 'Deck', icon: '⚓' },
   { id: 'engine', label: 'Engine Dept', short: 'Engine', icon: '⚙️' },
-  { id: 'galley', label: 'Galley Dept', short: 'Galley', icon: '🍳' },
+  { id: 'galley', label: 'Galley Dept', short: 'Galley', icon: '🍔' },
   { id: 'drills', label: 'Drills', short: 'Drills', icon: '🛟' },
   { id: 'others', label: 'Others', short: 'Others', icon: '📦' },
 ];
@@ -102,7 +190,6 @@ const PH_HOLIDAYS_2026 = [
   {date:'2026-12-25',name:'Christmas Day'},
   {date:'2026-12-30',name:'Rizal Day'},
 ];
-// Fixed holidays that recur every year on same MM-DD
 const FIXED_HOLIDAYS_MMDD: Record<string,string> = {
   '01-01': "New Year's Day",
   '05-01': "Labor Day",
@@ -114,70 +201,88 @@ const FIXED_HOLIDAYS_MMDD: Record<string,string> = {
 };
 
 function toISO(d: Date){const y=d.getFullYear();const m=String(d.getMonth()+1).padStart(2,'0');const day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`;}
-function getShipTimeNow(gmtOffset: number, enabled: boolean){ if(!enabled) return new Date(); const now=new Date(); const utc=now.getTime()+now.getTimezoneOffset()*60000; return new Date(utc+gmtOffset*3600000); }
-function formatGMT(offset: number){ 
+function toISOFromUTC(d: Date){const y=d.getUTCFullYear();const m=String(d.getUTCMonth()+1).padStart(2,'0');const day=String(d.getUTCDate()).padStart(2,'0');return `${y}-${m}-${day}`;}
+function getShipTimeNow(gmtOffset: number, enabled: boolean){
+  if(!enabled) return new Date();
+  return new Date(Date.now() + gmtOffset * 3600000);
+}
+function formatGMT(offset: number){
   const sign=offset>=0?'+':'-';
   const abs=Math.abs(offset);
   const h=Math.floor(abs);
   const m=Math.round((abs-h)*60);
   return m===0 ? `GMT${sign}${h}` : `GMT${sign}${h}:${String(m).padStart(2,'0')}`;
 }
-function format24H(date: Date){return `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}:${String(date.getSeconds()).padStart(2,'0')}`;}
-function format24H_HM(date: Date){return `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;}
+function format24H(date: Date, useUTC=false){
+  const h=useUTC?date.getUTCHours():date.getHours();
+  const mm=useUTC?date.getUTCMinutes():date.getMinutes();
+  const ss=useUTC?date.getUTCSeconds():date.getSeconds();
+  return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+}
+function format24H_HM(date: Date, useUTC=false){
+  const h=useUTC?date.getUTCHours():date.getHours();
+  const mm=useUTC?date.getUTCMinutes():date.getMinutes();
+  return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+}
 function parseISO(s: string){
   if(!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return new Date(NaN);
   const [y,m,dd]=s.split('-').map(Number);
   if(Number.isNaN(y)||Number.isNaN(m)||Number.isNaN(dd)) return new Date(NaN);
   if(m<1||m>12||dd<1||dd>31) return new Date(NaN);
-  return new Date(y,m-1,dd);
+  const dt=new Date(y,m-1,dd);
+  if(dt.getFullYear()!==y || dt.getMonth()!==m-1 || dt.getDate()!==dd) return new Date(NaN);
+  return dt;
 }
 function getMonday(d: Date){const date=new Date(d);const day=date.getDay();const diff=date.getDate()-day+(day===0?-6:1);date.setDate(diff);date.setHours(0,0,0,0);return date;}
 function addDays(d: Date,n: number){const nd=new Date(d);nd.setDate(nd.getDate()+n);return nd;}
-function sumBreakdown(b: Breakdown){return Object.values(b).reduce((a,v)=>a+(Number(v)||0),0);}
+function sumBreakdown(b: Breakdown){return (Object.values(b) as number[]).reduce((a,v)=>a+(Number(v)||0),0);}
 function emptyBreakdown(): Breakdown{return {deckWork:0,engineWork:0,watch:0,bridgeLookout:0,engineWatch:0,standby:0,mooring:0,bunkering:0,provisionDeck:0,provisionEngine:0,provisionGalley:0,garbage:0,cargo:0,drills:0,other:0,galleyWork:0,cooking:0,messService:0};}
 function isValidISO(s:string){ const d=parseISO(s); return !isNaN(d.getTime()); }
 
 function Time24Input({value, onChange, isDark}:{value:string, onChange:(v:string)=>void, isDark:boolean}){
-  // Normalize value to HH:MM or empty
   const parts = (value||'').split(':');
-  let hh = parts[0]||'';
-  let mm = parts[1]||'';
-  // Pad check: if user stored "8:5", show as "08" and "05" but keep logic
-  const normalize = (v:string)=>{
-    if(!v) return '';
+  const hhRaw = parts[0]||'';
+  const mmRaw = parts[1]||'';
+
+  const clamp = (v:string, max:number): string => {
+    if(v==='') return '';
     const n = parseInt(v,10);
-    if(Number.isNaN(n)) return '';
+    if(Number.isNaN(n) || n<0 || n>max) return '';
     return String(n).padStart(2,'0');
   };
-  const displayHH = normalize(hh) || hh;
-  const displayMM = normalize(mm) || mm;
 
-  const setH=(newH:string)=>{
-    if(newH===""){ onChange(""); return; }
-    const cleanH = normalize(newH);
-    const cleanM = normalize(mm) || '00';
+  const displayHH = clamp(hhRaw,23);
+  const displayMM = clamp(mmRaw,59);
+
+  const setH = (newH:string) => {
+    if(newH===''){ onChange(''); return; }
+    const cleanH = clamp(newH,23);
+    if(!cleanH) return;
+    const cleanM = clamp(mmRaw,59) || '00';
     onChange(`${cleanH}:${cleanM}`);
   };
-  const setM=(newM:string)=>{
-    if(newM===""){
-      if(hh) onChange(`${normalize(hh)||hh}:00`);
-      else onChange("");
+  const setM = (newM:string) => {
+    if(newM===''){
+      if(displayHH) onChange(`${displayHH}:00`);
+      else onChange('');
       return;
     }
-    const cleanH = normalize(hh) || '00';
-    const cleanM = normalize(newM);
+    const cleanM = clamp(newM,59);
+    if(!cleanM) return;
+    const cleanH = displayHH || '00';
     onChange(`${cleanH}:${cleanM}`);
   };
+
   return (
     <div className="flex items-center gap-2">
       <select value={displayHH} onChange={e=>setH(e.target.value)} title="Hour (00-23)" aria-label="Hour" className={`flex-1 min-w-0 border rounded-full px-1 py-2.5 text-[12px] font-bold text-center outline-none focus:ring-2 focus:ring-orange-500/30 ${isDark?'bg-[#0f172a] border-white/20 text-white':'bg-white border-slate-200 text-slate-900'}`}>
         <option value="">--</option>
-        {Array.from({length:24}).map((_,i)=><option key={i} value={String(i).padStart(2,'0')} className={isDark ? "text-white bg-[#0f172a]" : "text-black bg-white"}>{String(i).padStart(2,'0')}</option>)}
+        {Array.from({length:24}).map((_,i)=><option key={i} value={String(i).padStart(2,'0')}>{String(i).padStart(2,'0')}</option>)}
       </select>
       <span className={`font-bold shrink-0 ${isDark?'text-white':'text-slate-900'}`}>:</span>
       <select value={displayMM} onChange={e=>setM(e.target.value)} title="Minute (00-59)" aria-label="Minute" className={`flex-1 min-w-0 border rounded-full px-1 py-2.5 text-[12px] font-bold text-center outline-none focus:ring-2 focus:ring-orange-500/30 ${isDark?'bg-[#0f172a] border-white/20 text-white':'bg-white border-slate-200 text-slate-900'}`}>
         <option value="">--</option>
-        {Array.from({length:60}).map((_,i)=><option key={i} value={String(i).padStart(2,'0')} className={isDark ? "text-white bg-[#0f172a]" : "text-black bg-white"}>{String(i).padStart(2,'0')}</option>)}
+        {Array.from({length:60}).map((_,i)=><option key={i} value={String(i).padStart(2,'0')}>{String(i).padStart(2,'0')}</option>)}
       </select>
     </div>
   );
@@ -185,7 +290,7 @@ function Time24Input({value, onChange, isDark}:{value:string, onChange:(v:string
 
 type DayOTInfo={type:string;regularHours:number;otHours:number;doubleHours:number;payHours:number;multiplier:number;isHoliday:boolean;isWeekend:boolean;};
 function computeWeekOT(entries: Record<string, Entry>, weekStart: Date, isHolidayFn: (iso: string)=>boolean){
-  const perDay: Record<string, DayOTInfo>={}; 
+  const perDay: Record<string, DayOTInfo>={};
   for(let i=0;i<7;i++){
     const d=addDays(weekStart,i);
     const iso=toISO(d);
@@ -219,13 +324,41 @@ function computeWeekOT(entries: Record<string, Entry>, weekStart: Date, isHolida
   });
   return {perDay,totals:{totalOT,totalDouble,totalPay,cumulativeRegular,weekdayOT,weekendOT,holidayOT}};
 }
+
 export default function App(){
-  const [theme,setTheme]=useState<'dark'|'light'>(()=>{try{const s=localStorage.getItem('seatime-theme'); if(s==='dark'||s==='light') return s as any;}catch{} return 'dark';});
-  const [timeSettings,setTimeSettings]=useState<TimeSettings>(()=>{try{const s=localStorage.getItem('seatime-time-settings'); if(s){const p=JSON.parse(s); return {gmtOffset: typeof p.gmtOffset==='number'?p.gmtOffset:8, shipTimeEnabled: !!p.shipTimeEnabled, label: p.label||'Ship Time'};}}catch{} return {gmtOffset:8, shipTimeEnabled:false, label:'Ship Time'};});
-  const [viewDate,setViewDate]=useState(()=>getShipTimeNow(8, false));
+  const [theme,setTheme]=useState<'dark'|'light'>(()=>{
+    try{
+      if(typeof window!=='undefined'){
+        const s=localStorage.getItem('seatime-theme');
+        if(s==='dark'||s==='light') return s as 'dark'|'light';
+      }
+    }catch{}
+    return 'dark';
+  });
+  const [timeSettings,setTimeSettings]=useState<TimeSettings>(()=>{
+    const deviceOff = getDeviceGMTOffset();
+    try{
+      if(typeof window!=='undefined'){
+        const s=localStorage.getItem('seatime-time-settings');
+        if(s){
+          const p=JSON.parse(s);
+          return {
+            gmtOffset: typeof p.gmtOffset==='number'?p.gmtOffset:deviceOff,
+            shipTimeEnabled: !!p.shipTimeEnabled,
+            label: typeof p.label==='string'?p.label:'Ship Time',
+            autoSyncDevice: typeof p.autoSyncDevice==='boolean'?p.autoSyncDevice:true,
+          };
+        }
+      }
+    }catch{}
+    return {gmtOffset:deviceOff, shipTimeEnabled:false, label:'Ship Time', autoSyncDevice:true};
+  });
+  const deviceGMTOffset = getDeviceGMTOffset();
+  const deviceTimeZone = getDeviceTimeZone();
+  const [viewDate,setViewDate]=useState(()=>new Date());
   const [showTimeModal,setShowTimeModal]=useState(false);
-  const [seafarerInfo,setSeafarerInfo]=useState<SeafarerInfo>(()=>{try{const s=localStorage.getItem('seatime-seafarer');if(s){const parsed=JSON.parse(s); return {name:parsed.name||'',employeeNo:parsed.employeeNo||'',department:parsed.department||'Deck'};}}catch{}return {name:'',employeeNo:'',department:'Deck'};});
-  const [vesselInfo,setVesselInfo]=useState<VesselInfo>(()=>{try{const s=localStorage.getItem('seatime-vessel');if(s){const parsed=JSON.parse(s); return {name:parsed.name||'',type:parsed.type||'',imo:parsed.imo||'',flag:parsed.flag||'',masterName:parsed.masterName||''};}}catch{}return {name:'',type:'',imo:'',flag:'',masterName:''};});
+  const [seafarerInfo,setSeafarerInfo]=useState<SeafarerInfo>(()=>{try{if(typeof window!=='undefined'){const s=localStorage.getItem('seatime-seafarer');if(s){const parsed=JSON.parse(s); return {name:parsed.name||'',employeeNo:parsed.employeeNo||'',department:parsed.department||'Deck'};}}}catch{}return {name:'',employeeNo:'',department:'Deck'};});
+  const [vesselInfo,setVesselInfo]=useState<VesselInfo>(()=>{try{if(typeof window!=='undefined'){const s=localStorage.getItem('seatime-vessel');if(s){const parsed=JSON.parse(s); return {name:parsed.name||'',type:parsed.type||'',imo:parsed.imo||'',flag:parsed.flag||'',masterName:parsed.masterName||''};}}}catch{}return {name:'',type:'',imo:'',flag:'',masterName:''};});
   const [showVesselModal,setShowVesselModal]=useState(false);
   const [showShareModal,setShowShareModal]=useState(false);
   const [showSidebar,setShowSidebar] = useState(false);
@@ -233,11 +366,10 @@ export default function App(){
   const [isInstalled,setIsInstalled]=useState(false);
   const [isIOSDevice,setIsIOSDevice]=useState(false);
   const [summaryView,setSummaryView]=useState<'weekly'|'monthly'>('weekly');
-  const [userRank,setUserRank]=useState<Rank | ''>(()=>{try{const s=localStorage.getItem('seatime-rank');if(s)return s as Rank;}catch{}return '';});
-  const [entries,setEntries]=useState<Record<string, Entry>>(()=>{try{const s=localStorage.getItem('seatime-entries');if(s){const parsed=JSON.parse(s); if(parsed && typeof parsed==='object') return parsed;}}catch{}return {};});
+  const [userRank,setUserRank]=useState<Rank | ''>(()=>{try{if(typeof window!=='undefined'){const s=localStorage.getItem('seatime-rank');if(s)return s as Rank;}}catch{}return '';});
+  const [entries,setEntries]=useState<Record<string, Entry>>(()=>{try{if(typeof window!=='undefined'){const s=localStorage.getItem('seatime-entries');if(s){const parsed=JSON.parse(s); if(parsed && typeof parsed==='object') return parsed;}}}catch{}return {};});
   const [editing,setEditing]=useState<Entry|null>(null);
   const [activeTaskTab,setActiveTaskTab]=useState<'deck'|'engine'|'galley'|'drills'|'others'>('deck');
-  // Auto-select tab based on user's department when opening editor
   useEffect(()=>{
     if(editing){
       if(seafarerInfo.department==='Engine') setActiveTaskTab('engine');
@@ -247,27 +379,36 @@ export default function App(){
   },[editing, seafarerInfo.department]);
   const [now24H,setNow24H]=useState(()=>getShipTimeNow(timeSettings.gmtOffset, timeSettings.shipTimeEnabled));
   useEffect(()=>{const id=setInterval(()=>setNow24H(getShipTimeNow(timeSettings.gmtOffset, timeSettings.shipTimeEnabled)),1000);return ()=>clearInterval(id);},[timeSettings]);
-  useEffect(()=>{try{localStorage.setItem('seatime-theme',theme);}catch{}},[theme]);
-  useEffect(()=>{try{localStorage.setItem('seatime-time-settings',JSON.stringify(timeSettings));}catch{}},[timeSettings]);
-  useEffect(()=>{try{localStorage.setItem('seatime-rank',userRank);}catch{}},[userRank]);
-  useEffect(()=>{try{localStorage.setItem('seatime-vessel',JSON.stringify(vesselInfo));}catch{}},[vesselInfo]);
-  useEffect(()=>{try{localStorage.setItem('seatime-seafarer',JSON.stringify(seafarerInfo));}catch{}},[seafarerInfo]);
-  useEffect(()=>{try{localStorage.setItem('seatime-entries',JSON.stringify(entries));}catch{}},[entries]);
-
-  // --- PWA Install Logic + SW Registration ---
+  useEffect(()=>{try{if(typeof window!=='undefined') localStorage.setItem('seatime-theme',theme);}catch{}},[theme]);
+  useEffect(()=>{try{if(typeof window!=='undefined') localStorage.setItem('seatime-time-settings',JSON.stringify(timeSettings));}catch{}},[timeSettings]);
   useEffect(()=>{
-    // Register service worker for PWA installability on Vercel
-    if('serviceWorker' in navigator){
+    if(!timeSettings.autoSyncDevice) return;
+    const syncDeviceOffset = ()=>{
+      const dev = getDeviceGMTOffset();
+      setTimeSettings(prev=> prev.autoSyncDevice && prev.gmtOffset !== dev ? {...prev, gmtOffset: dev} : prev);
+    };
+    syncDeviceOffset();
+    const id = setInterval(syncDeviceOffset, 30000);
+    const onFocus = syncDeviceOffset;
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('visibilitychange', onFocus);
+    return ()=>{ clearInterval(id); window.removeEventListener('focus', onFocus); window.removeEventListener('visibilitychange', onFocus); };
+  },[timeSettings.autoSyncDevice]);
+  useEffect(()=>{try{if(typeof window!=='undefined') localStorage.setItem('seatime-rank',userRank);}catch{}},[userRank]);
+  useEffect(()=>{try{if(typeof window!=='undefined') localStorage.setItem('seatime-vessel',JSON.stringify(vesselInfo));}catch{}},[vesselInfo]);
+  useEffect(()=>{try{if(typeof window!=='undefined') localStorage.setItem('seatime-seafarer',JSON.stringify(seafarerInfo));}catch{}},[seafarerInfo]);
+  useEffect(()=>{try{if(typeof window!=='undefined') localStorage.setItem('seatime-entries',JSON.stringify(entries));}catch{}},[entries]);
+
+  useEffect(()=>{
+    if(typeof window!=='undefined' && 'serviceWorker' in navigator){
       navigator.serviceWorker.register('/sw.js').catch(()=>{});
     }
-    // Check if already installed
     const checkInstalled = () => {
       // @ts-ignore
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
       if(isStandalone) setIsInstalled(true);
     };
     checkInstalled();
-    // iOS detection
     const ua = window.navigator.userAgent;
     const iOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     setIsIOSDevice(iOS);
@@ -288,25 +429,28 @@ export default function App(){
     };
   },[]);
 
-  // Holidays: exact dates for 2026 plus fixed MM-DD for any year
   const holidaysSet=useMemo(()=>new Set(PH_HOLIDAYS_2026.map(h=>h.date)),[]);
   const holidayMap=useMemo(()=>new Map(PH_HOLIDAYS_2026.map(h=>[h.date,h.name] as [string,string])),[]);
-  const isHolidayDate = (iso: string) => {
+  
+  const isHolidayDate = useCallback((iso: string) => {
+    if (!iso || iso.length < 5) return false;
     if (holidaysSet.has(iso)) return true;
     const mmdd = iso.slice(5);
     return mmdd in FIXED_HOLIDAYS_MMDD;
-  };
-  const getHolidayName = (iso: string) => {
+  }, [holidaysSet]);
+
+  const getHolidayName = useCallback((iso: string) => {
+    if (!iso || iso.length < 5) return undefined;
     if(holidayMap.has(iso)) return holidayMap.get(iso);
     const mmdd = iso.slice(5);
     return FIXED_HOLIDAYS_MMDD[mmdd];
-  };
+  }, [holidayMap]);
+
   const weekStart=useMemo(()=>getMonday(viewDate),[viewDate]);
   const monthStart=useMemo(()=>new Date(viewDate.getFullYear(),viewDate.getMonth(),1),[viewDate]);
-  const weekOT=useMemo(()=>computeWeekOT(entries,weekStart,isHolidayDate),[entries,weekStart,holidaysSet]);
+  const weekOT=useMemo(()=>computeWeekOT(entries,weekStart,isHolidayDate),[entries,weekStart,isHolidayDate]);
   const calendarDays=useMemo(()=>{const days: Date[]=[];const start=getMonday(monthStart);for(let i=0;i<42;i++)days.push(addDays(start,i));return days;},[monthStart]);
 
-  // Filter entries for current month - memoized
   const monthEntries = useMemo(()=>{
     return Object.values(entries).filter(e=>{
       const d=parseISO(e.date);
@@ -325,12 +469,21 @@ export default function App(){
         (Object.keys(totals) as (keyof Breakdown)[]).forEach(k=>{totals[k]+=e.breakdown[k]||0;});
         totalWork+=e.totalWork;
         totalRest+= Math.max(0, 24 - e.totalWork);
-      }else{
-        totalRest+=24; // count missing days as full rest
       }
     }
     return {totals,totalWork,totalRest};
   },[entries,weekStart]);
+
+  const handlePrint = () => {
+    if(typeof document==='undefined') return;
+    const originalTitle = document.title;
+    const name = (seafarerInfo.name || 'Seafarer').replace(/\s+/g, '_');
+    const rankAbbr = getRankAbbr(userRank || 'Rank');
+    const dateStr = new Date().toISOString().split('T')[0];
+    document.title = `${name}-${rankAbbr}-SeaTime-${dateStr}`;
+    window.print();
+    setTimeout(() => { document.title = originalTitle; }, 1000);
+  };
 
   const compliance=useMemo(()=>{
     let compliantDays=0,totalDaysWithEntry=0,totalWorkWeek=0, totalRestWeek=0;
@@ -345,9 +498,6 @@ export default function App(){
         totalWorkWeek+=e.totalWork;
         totalRestWeek+=rest;
         if(rest>=10) compliantDays++;
-      }else{
-        // No entry = full rest day, compliant
-        totalRestWeek+=24;
       }
     }
     const weekRest = totalRestWeek;
@@ -361,10 +511,7 @@ export default function App(){
       const d=new Date(viewDate.getFullYear(),viewDate.getMonth(),day);
       const iso=toISO(d);
       const e=entries[iso];
-      if(!e){
-        monthRest+=24;
-        continue;
-      }
+      if(!e) continue;
       if(!isValidISO(iso)) continue;
       const isHoliday=isHolidayDate(iso);
       const isWeekend=d.getDay()===0||d.getDay()===6;
@@ -394,7 +541,7 @@ export default function App(){
       }
     }
     return {totalWork,monthPay,monthOT,monthDouble,monthRegular,monthWeekendOT,monthWeekdayOT,monthHolidayOT,monthRest,daysInMonth};
-  },[entries,viewDate,holidaysSet]);
+  },[entries,viewDate,isHolidayDate]);
 
   const openDay=(iso: string)=>{
     const existing=entries[iso];
@@ -410,35 +557,33 @@ export default function App(){
     }
     setEditing(newEntry);
   };
-  const getAutoPortNote = (portName: string, arrivalTime: string, departureTime: string, location: string) => {
-    const pn = (portName||'').trim();
-    if(!pn) return null;
-    if(location==='At Sea') return `Enroute to ${pn}`;
-    const hasArr = !!arrivalTime, hasDep = !!departureTime;
-    if(hasArr && hasDep) return `Arrival & Departure - ${pn}`;
-    if(hasArr && !hasDep) return `Arrival - ${pn}`;
-    if(!hasArr && hasDep) return `Departure - ${pn}`;
-    return `Berthed - ${pn}`;
-  };
-  const handleSave=()=>{
+  
+  const handleSave = () => {
     if(!editing) return;
     const isRestDay = editing.duty==='Rest Day';
-    const total=isRestDay?0:sumBreakdown(editing.breakdown);
-    if(total>24){ alert('Total work cannot exceed 24h per day. Current: '+total.toFixed(1)+'h'); return; }
+    const total = isRestDay ? 0 : sumBreakdown(editing.breakdown);
+    if(total > 24){ alert('Total work cannot exceed 24h per day. Current: '+total.toFixed(1)+'h'); return; }
     if(!isValidISO(editing.date)){ alert('Invalid date'); return; }
-    const autoNote = getAutoPortNote(editing.portName, editing.arrivalTime, editing.departureTime, editing.location);
-    const holidayName = getHolidayName(editing.date) || '';
+    
     let finalNotes = editing.notes?.trim() || '';
     if(isRestDay){
       finalNotes = finalNotes || 'Rest Day - No Work (24h Rest)';
-    }else if(autoNote){
-      if(!finalNotes || finalNotes===holidayName){ finalNotes = autoNote; }
-      else if(!finalNotes.includes(autoNote)){ finalNotes = `${autoNote} • ${finalNotes}`; }
     }
-    const toSave: Entry={...editing, notes: finalNotes, totalWork: total, breakdown: isRestDay ? emptyBreakdown() : editing.breakdown};
-    if(!isRestDay && total===0&&!finalNotes&&!editing.arrivalTime&&!editing.departureTime&&!editing.portName){
-      const copy={...entries};delete copy[editing.date];setEntries(copy);
-    }else{setEntries(prev=>({...prev,[editing.date]:toSave}));}
+
+    const toSave: Entry = {
+      ...editing, 
+      notes: finalNotes, 
+      totalWork: total, 
+      breakdown: isRestDay ? emptyBreakdown() : editing.breakdown
+    };
+
+    if(!isRestDay && total === 0 && !finalNotes && !editing.arrivalTime && !editing.departureTime && !editing.portName){
+      const copy = {...entries}; 
+      delete copy[editing.date]; 
+      setEntries(copy);
+    } else {
+      setEntries(prev => ({...prev, [editing.date]: toSave}));
+    }
     setEditing(null);
   };
   const handleDelete=()=>{if(!editing)return;const copy={...entries};delete copy[editing.date];setEntries(copy);setEditing(null);};
@@ -468,39 +613,84 @@ export default function App(){
     if(isHoliday) return {type:'OT-Holiday (straight)',multiplier:1,pay:liveTotal};
     if(liveTotal>8) return {type:`Regular 8h + OT ${liveTotal-8}h (Beyond 8h/day)`,multiplier:1,pay:liveTotal};
     return {type:'Regular - Working Time (8h/day Mon-Fri)',multiplier:1,pay:liveTotal};
-  },[editing?.date, editing?.location, liveTotal]);
+  },[editing, liveTotal, isHolidayDate]);
 
   const isDark = theme==='dark';
   const weekPayHours = weekOT.totals.cumulativeRegular + weekOT.totals.totalOT + weekOT.totals.totalDouble;
   const monthPayHours = monthTotals.monthRegular + monthTotals.monthOT + monthTotals.monthDouble;
 
   return (
-    <div className={isDark?"min-h-screen bg-[#070e1f] text-slate-100":"min-h-screen bg-[#f8fafc] text-slate-900"} style={{fontFamily:"'Instrument Sans', system-ui, sans-serif"} as any}>
-      <style>{fontLinks}</style>
-      <header className={isDark?"sticky top-0 z-30 bg-[#0f172a] border-b border-white/10":"sticky top-0 z-30 bg-[#0f172a] border-b border-white/10 text-white"}>
-        <div className="max-w-[1600px] mx-auto px-3 md:px-6 py-2 md:py-3 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 md:gap-3">
-          <button onClick={()=>setShowSidebar(true)} className="h-8 w-8 flex items-center justify-center text-[14px] bg-white/10 border border-white/20 rounded-full text-white cursor-pointer">☰</button>
-        <div className="w-8 h-8 md:w-9 md:h-9 shrink-0 bg-[#0f172a] border border-white/10 rounded-[12px] flex items-center justify-center"><AnchorLogoIcon /></div>
-        <div>
-          <div className="text-[20px] font-bold leading-none tracking-wide text-white">SEATIME</div>
-          <div className="text-[12px] opacity-50 uppercase text-white leading-none hidden md:block">Detailed Breakdown Tracker • TRUE 24H • DMW 40h/week</div>
+    <div className={isDark?"min-h-screen bg-[#070e1f] text-slate-100":"min-h-screen bg-[#f8fafc] text-slate-900"} style={{fontFamily:"'Instrument Sans', system-ui, sans-serif"}}>
+      <style>{fontLinks + printStyles}</style>
+      
+      {/* PRINT ONLY HEADER - high contrast for PDF */}
+      <div className="print-only bg-white text-black border-b-2 border-black p-0">
+        <div className="border-2 border-black rounded-lg p-4">
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-[18px] font-black tracking-wide text-black uppercase">SeaTime - Work & Rest Report</h1>
+              <p className="text-[10px] text-black font-bold mt-1">Detailed Breakdown Tracker • True 24H • DMW 40h/week • Generated: {new Date().toLocaleDateString('en-GB')} {format24H(new Date())}</p>
+            </div>
+            <div className="no-print text-right border border-black px-3 py-1 rounded">
+              <div className="no-print text-[11px] font-black text-black">Ship Time: {formatGMT(timeSettings.gmtOffset)}</div>
+              <div className="no-print text-[9px] text-black font-bold">{deviceTimeZone} • {timeSettings.shipTimeEnabled ? 'Ship Time' : 'Local Time'}</div>
+            </div>
+          </div>
+          
+          <div className="mt-4 grid grid-cols-3 gap-0 border-2 border-black rounded overflow-hidden">
+            <div className="p-3 border-r-2 border-black bg-slate-50">
+              <div className="text-[8px] uppercase font-black text-black tracking-widest">Seafarer Details</div>
+              <div className="text-[13px] font-black text-black mt-1 uppercase">{seafarerInfo.name || 'NOT SET'}</div>
+              <div className="text-[11px] font-bold text-black mt-1">{userRank ? `${getRankAbbr(userRank)} - ${userRank}` : 'Rank: Not Set'}</div>
+              <div className="text-[10px] font-bold text-black">Dept: {seafarerInfo.department} • Emp No: {seafarerInfo.employeeNo || '-'}</div>
+            </div>
+            <div className="p-3 border-r-2 border-black bg-white">
+              <div className="text-[8px] uppercase font-black text-black tracking-widest">Vessel Details</div>
+              <div className="text-[13px] font-black text-black mt-1 uppercase">{vesselInfo.name || 'VESSEL NAME'}</div>
+              <div className="text-[10px] font-bold text-black mt-1">Type: {vesselInfo.type || '-'} • IMO: {vesselInfo.imo || '-'}</div>
+              <div className="text-[10px] font-bold text-black">Flag: {vesselInfo.flag || '-'}</div>
+            </div>
+            <div className="p-3 bg-slate-50">
+              <div className="text-[8px] uppercase font-black text-black tracking-widest">Master & Voyage</div>
+              <div className="text-[13px] font-black text-black mt-1 uppercase">{vesselInfo.masterName || 'MASTER NAME'}</div>
+              <div className="text-[10px] font-bold text-black mt-1">Period: {viewDate.toLocaleDateString('en-GB',{month:'long',year:'numeric'})}</div>
+              <div className="text-[10px] font-bold text-black">Entries: {monthEntries.length} • Total Work: {monthTotals.totalWork.toFixed(1)}h • Rest: {monthTotals.monthRest.toFixed(1)}h</div>
+            </div>
+          </div>
+          
+          <div className="mt-3 flex gap-4 text-[9px] font-bold text-black">
+            <span className="border border-black px-2 py-1 rounded bg-slate-100">Regular: {monthTotals.monthRegular.toFixed(1)}h</span>
+            <span className="border border-black px-2 py-1 rounded bg-slate-100">OT: {(monthTotals.monthOT + monthTotals.monthDouble).toFixed(1)}h</span>
+            <span className="border border-black px-2 py-1 rounded bg-slate-100">MLC: {compliance.dayCompliancePct}% • {compliance.compliantDays}/{compliance.totalDaysWithEntry} days ≥10h</span>
+          </div>
         </div>
       </div>
 
-      {/* Clock - flex item to avoid mobile overlap */}
-      <div className="flex items-center gap-1 bg-white/10 border border-white/20 rounded-full px-2 md:px-[10px] h-[22px] md:h-[20px] text-white shrink-0 whitespace-nowrap">
-        <span className="text-[13px] font-mono font-bold">{format24H(now24H)}</span><sup className="text-[10px] opacity-60 ml-0.5 -top-0.5">24H</sup>
-      </div>
+      <header className={isDark?"sticky top-0 z-30 bg-[#0f172a] border-b border-white/10":"sticky top-0 z-30 bg-[#0f172a] border-b border-white/10 text-white"}>
+        <div className="max-w-[1600px] mx-auto px-3 md:px-6 py-2 md:py-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 md:gap-3">
+            <button onClick={()=>setShowSidebar(true)} className="h-8 w-8 flex items-center justify-center text-[14px] bg-white/10 border border-white/20 rounded-full text-white cursor-pointer">☰</button>
+            <img src="/icon-172.png" alt="SeaTime" className="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover border border-white/10" />
+            <div>
+              <div className="text-[20px] font-bold leading-none tracking-wide text-white">SEATIME</div>
+              <div className="text-[12px] opacity-50 uppercase text-white leading-none hidden md:block">Detailed Breakdown Tracker • TRUE 24H • DMW 40h/week</div>
+            </div>
+          </div>
 
-      <div className="flex items-center gap-2">
-        <button onClick={()=>setTheme(isDark?'light':'dark')} className="text-[11px] bg-white/10 border border-white/20 rounded-full px-3 py-1.5 cursor-pointer text-white font-bold">
-          {isDark?'🌙 Dark':'☀️ Light'}
-        </button>
-      </div>
-    </div>
-    </header>
-            {showSidebar && (
+          <button onClick={()=>setShowTimeModal(true)} className="flex items-center gap-1 bg-white/10 border border-white/20 rounded-full px-2 md:px-[10px] h-[22px] md:h-[20px] text-white shrink-0 whitespace-nowrap hover:bg-white/20 transition" title={timeSettings.autoSyncDevice ? `Synced to device ${formatGMT(deviceGMTOffset)} ${deviceTimeZone}` : `Ship Time ${formatGMT(timeSettings.gmtOffset)} - Click to change`}>
+            <span className="text-[13px] font-mono font-bold">{format24H(now24H, timeSettings.shipTimeEnabled)}</span><sup className="text-[10px] opacity-60 ml-0.5 -top-0.5">24H</sup>
+            {timeSettings.autoSyncDevice && <span className="text-[8px] ml-1 bg-emerald-500 px-1 py-0.5 rounded-full">AUTO</span>}
+          </button>
+
+          <div className="flex items-center gap-2">
+            <button onClick={()=>setTheme(isDark?'light':'dark')} className="text-[11px] bg-white/10 border border-white/20 rounded-full px-3 py-1.5 cursor-pointer text-white font-bold">
+              {isDark?'🌙 Dark':'☀️ Light'}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {showSidebar && (
         <>
           <div onClick={()=>setShowSidebar(false)} className="fixed inset-0 bg-black/50 z-40"></div>
           <div className={`fixed left-0 top-0 bottom-0 w-[300px] z-50 p-3 flex flex-col gap-2 ${isDark ? 'bg-[#0f172a] border-r border-white/10 text-white' : 'bg-white border-r border-slate-200 text-slate-900'}`}>
@@ -513,15 +703,15 @@ export default function App(){
                 const data={entries,vesselInfo,seafarerInfo,userRank,exportDate:new Date().toISOString()};
                 const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
                 const url=URL.createObjectURL(blob);
-                const a=document.createElement('a'); a.href=url; 
-                const safeRank = (userRank || 'Rank').replace(/[^a-zA-Z0-9 ]/g, '').trim().replace(/\s+/g, '_');
+                const a=document.createElement('a'); a.href=url; document.body.appendChild(a);
+                const safeRank = getRankAbbr(userRank || 'Rank');
                 const safeName = (seafarerInfo.name || 'Seafarer').trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
                 a.download=`${safeRank}_${safeName}_${toISO(new Date())}.json`;
-                a.click(); URL.revokeObjectURL(url);
+                a.click(); a.remove(); URL.revokeObjectURL(url);
               }catch(e){ alert('Export failed'); console.error(e); }
               setShowSidebar(false);
-            }} className={`w-full text-left px-3 py-2.5 rounded-[12px] font-bold text-[12px] cursor-pointer block ${isDark?'bg-white/10':'bg-slate-100'}`}>📤 Export</button>
-            <label className={`w-full text-left px-3 py-2.5 rounded-[12px] font-bold text-[12px] cursor-pointer block ${isDark?'bg-white/10':'bg-slate-100'}`}>📥 Import<input type="file" accept=".json" className="hidden" onChange={e=>{
+            }} className={`w-full text-left px-3 py-2.5 rounded-[14px] font-bold text-[14px] cursor-pointer block ${isDark?'bg-white/10':'bg-slate-100'}`}>📤 Export</button>
+            <label className={`w-full text-left px-3 py-2.5 rounded-[14px] font-bold text-[14px] cursor-pointer block ${isDark?'bg-white/10':'bg-slate-100'}`}>📥 Import<input type="file" accept=".json" className="hidden" onChange={e=>{
               const file=e.target.files?.[0]; if(!file) return;
               const reader=new FileReader();
               reader.onload=ev=>{
@@ -536,10 +726,10 @@ export default function App(){
                 }catch{alert('Invalid file');}
               };
               reader.readAsText(file);
+              (e.target as HTMLInputElement).value='';
               setShowSidebar(false);
             }} /></label>
-            <button onClick={()=>{setShowShareModal(true); setShowSidebar(false);}} className={`w-full text-left px-3 py-2.5 rounded-[12px] font-bold text-[12px] cursor-pointer block ${isDark?'bg-white/10':'bg-slate-100'}`}>🔗 Share App</button>
-            {/* Install App Button */}
+            <button onClick={()=>{setShowShareModal(true); setShowSidebar(false);}} className={`w-full text-left px-3 py-2.5 rounded-[14px] font-bold text-[14px] cursor-pointer block ${isDark?'bg-white/10':'bg-slate-100'}`}>🔗 Share App</button>
             {!isInstalled ? (
               <button
                 onClick={async()=>{
@@ -555,28 +745,28 @@ export default function App(){
                   }else if(isIOSDevice){
                     setShowSidebar(false);
                     setTimeout(()=>setShowShareModal(true), 300);
-                    alert('To install on iPhone/iPad:\n1. Tap the Share button (square with arrow) in Safari\n2. Scroll down and tap \"Add to Home Screen\"\n3. Tap Add');
+                    alert("To install on iPhone/iPad:\n1. Tap the Share button (square with arrow) in Safari\n2. Scroll down and tap 'Add to Home Screen'\n3. Tap Add");
                   }else{
-                    alert('To install:\n• Chrome/Edge: Click the install icon in address bar or Menu → Install app\n• If already installed, you are all set!');
+                    alert("To install:\n• Chrome/Edge: Click the install icon in address bar or Menu → Install app\n• If already installed, you are all set!");
                   }
                 }}
-                className={`w-full text-left px-3 py-2.5 rounded-[12px] font-bold text-[12px] cursor-pointer flex items-center justify-between ${deferredPrompt ? 'bg-[#f97316] text-white border border-[#f97316] shadow-md' : isDark?'bg-white/10':'bg-slate-100'}`}
+                className={`w-full text-left px-3 py-2.5 rounded-[14px] font-bold text-[14px] cursor-pointer flex items-center justify-between ${deferredPrompt ? 'bg-[#f97316] text-white border border-[#f97316] shadow-md' : isDark?'bg-white/10':'bg-slate-100'}`}
               >
                 <span>⬇️ Install App</span>
-                {deferredPrompt && <span className="text-[10px] bg-white text-[#f97316] px-2 py-0.5 rounded-full font-bold animate-pulse">NEW</span>}
+                {deferredPrompt && <span className="text-[12px] bg-white text-[#f97316] px-2 py-0.5 rounded-full font-bold animate-pulse">NEW</span>}
               </button>
             ) : (
               <div className={`w-full text-left px-3 py-2.5 rounded-[12px] font-bold text-[12px] flex items-center gap-2 ${isDark?'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300':'bg-emerald-50 border border-emerald-200 text-emerald-700'}`}>
                 <span>✅ App Installed</span>
               </div>
             )}
-            <button onClick={()=>{setShowTimeModal(true); setShowSidebar(false);}} className={`w-full text-left px-3 py-2.5 rounded-[12px] font-bold text-[12px] cursor-pointer block ${isDark?'bg-white/10':'bg-slate-100'}`}>🕒 Ship Time / GMT</button>
-            <button onClick={()=>{if(window.confirm('Clear ALL data? Export first!')){ setEntries({}); setVesselInfo({name:'',type:'',imo:'',flag:'',masterName:''}); setSeafarerInfo({name:'',employeeNo:'',department:'Deck'}); setUserRank('' as any); try{localStorage.removeItem('seatime-entries'); localStorage.removeItem('seatime-vessel'); localStorage.removeItem('seatime-seafarer'); localStorage.removeItem('seatime-rank');}catch{} alert('All data cleared!'); setShowSidebar(false); }}} className="w-full text-left px-3 py-2.5 rounded-[12px] font-bold text-[12px] cursor-pointer block bg-red-500/20 border border-red-500/30 text-red-400">🗑️ Clear All</button>
+            <button onClick={()=>{setShowTimeModal(true); setShowSidebar(false);}} className={`w-full text-left px-3 py-2.5 rounded-[14px] font-bold text-[14px] cursor-pointer block ${isDark?'bg-white/10':'bg-slate-100'}`}>🕒 Ship Time / GMT</button>
+            <button onClick={()=>{if(window.confirm('Clear ALL data? Export first!')){ setEntries({}); setVesselInfo({name:'',type:'',imo:'',flag:'',masterName:''}); setSeafarerInfo({name:'',employeeNo:'',department:'Deck'}); setUserRank(''); try{if(typeof window!=='undefined'){localStorage.removeItem('seatime-entries'); localStorage.removeItem('seatime-vessel'); localStorage.removeItem('seatime-seafarer'); localStorage.removeItem('seatime-rank');}}catch{} alert('All data cleared!'); setShowSidebar(false); }}} className="w-full text-left px-3 py-2.5 rounded-[14px] font-bold text-[14px] cursor-pointer block bg-red-500/20 border border-red-500/30 text-red-400">🗑️ Clear All</button>
           </div>
         </>
       )}
 
-      <div className={isDark?"bg-[#0b1222] border-b border-white/5":"bg-white border-b border-slate-200"}>
+      <div className={`no-print ${isDark ? "bg-[#0b1222] border-b border-white/5" : "bg-white border-b border-slate-200"}`}>
         <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-3 grid grid-cols-2 md:grid-cols-5 gap-3 items-center">
           <div><div className="text-[11px] uppercase opacity-50">Seafarer</div><button onClick={()=>setShowVesselModal(true)} className={`mt-1 w-full text-left border rounded-[10px] px-3 py-2 cursor-pointer text-[13px] font-bold hover:opacity-80 ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{seafarerInfo.name||'Set Name'} • {userRank||'Select Rank'} • {RANKS.find(r=>r.label===userRank)?.dept||'Department'}</button></div>
           <div><div className="text-[11px] uppercase opacity-50">Vessel Name</div><div className={`mt-1 w-full text-left border rounded-[10px] px-3 py-2 text-[13px] font-bold hover:opacity-80 ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.name || 'Vessel Name'}</div></div>
@@ -588,7 +778,7 @@ export default function App(){
 
       <main className="max-w-[1600px] mx-auto px-4 md:px-6 py-4 grid grid-cols-12 gap-4">
         <div className="col-span-12 lg:col-span-3 space-y-4">
-          <div className={isDark?"bg-[#121c33] border border-white/10 rounded-[16px] p-4":"bg-white border border-slate-200 rounded-[16px] p-4"}>
+          <div className={`${isDark?"bg-[#121c33] border border-white/10 rounded-[16px] p-4":"bg-white border border-slate-200 rounded-[16px] p-4"} `}>
             <div className="flex items-center justify-between">
               <div className="text-[11px] uppercase opacity-60">Summary</div>
               <div className="flex gap-1">
@@ -608,7 +798,7 @@ export default function App(){
                     <div className="text-[18px] font-bold text-blue-400">{weekOT.totals.totalOT.toFixed(1)}</div>
                   </div>
                   <div className={isDark?"flex justify-between items-center bg-red-950/30 border border-red-500/20 rounded-[14px] px-3 py-3":"flex justify-between items-center bg-red-50 border border-red-200 rounded-[14px] px-3 py-3"}>
-                    <div><div className={isDark?"text-[10px] text-red-300":"text-[10px] text-red-700 font-bold"}>Double OT  (Holiday at Port)</div><div className="text-[11px] opacity-60">Total Work Hours x 2 = OT Hours</div></div>
+                    <div><div className={isDark?"text-[10px] text-red-300":"text-[10px] text-red-700 font-bold"}>Double OT (Holiday at Port)</div><div className="text-[11px] opacity-60">Total Work Hours x 2 = OT Hours</div></div>
                     <div className="text-[18px] font-bold text-red-400">{weekOT.totals.totalDouble.toFixed(1)}</div>
                   </div>
                 </div>
@@ -640,7 +830,7 @@ export default function App(){
                     <div className="text-[18px] font-bold text-blue-400">{monthTotals.monthOT.toFixed(1)}</div>
                   </div>
                   <div className={isDark?"flex justify-between items-center bg-red-950/30 border border-red-500/20 rounded-[14px] px-3 py-3":"flex justify-between items-center bg-red-50 border border-red-200 rounded-[14px] px-3 py-3"}>
-                    <div><div className={isDark?"text-[10px] text-red-300":"text-[10px] text-red-700 font-bold"}>Double OT  (Holiday at Port)</div><div className="text-[11px] opacity-60">Total Work Hours x 2 = OT Hours</div></div>
+                    <div><div className={isDark?"text-[10px] text-red-300":"text-[10px] text-red-700 font-bold"}>Double OT (Holiday at Port)</div><div className="text-[11px] opacity-60">Total Work Hours x 2 = OT Hours</div></div>
                     <div className="text-[18px] font-bold text-red-400">{monthTotals.monthDouble.toFixed(1)}</div>
                   </div>
                 </div>
@@ -668,14 +858,31 @@ export default function App(){
             <div className="text-[10px] opacity-50 mt-1">{compliance.compliantDays}/{compliance.totalDaysWithEntry} days ≥10h • {compliance.weekRest.toFixed(1)}h week (need 77h)</div>
             <div className="mt-2 w-full bg-black/10 rounded-full h-1.5"><div className="bg-emerald-400 h-1.5 rounded-full" style={{width:`${compliance.dayCompliancePct}%`}} /></div>
           </div>
+
+          <div className={`rounded-[16px] p-4 border ${isDark?"bg-[#121c33] border-white/10":"bg-white border-slate-200"}`}>
+            <button onClick={handlePrint} className={`w-full rounded-[12px] px-3 py-3 text-[13px] font-bold flex items-center justify-center gap-2 transition ${isDark?'bg-white text-black hover:bg-slate-100':'bg-slate-900 text-white hover:bg-slate-800'}`}>
+              🖨️ Save as PDF / Print
+            </button>
+            <div className="text-[10px] opacity-50 text-center mt-2">Filename: Name-RANK-SeaTime-Date.pdf • Detailed breakdown only</div>
+          </div>
         </div>
 
         <div className="col-span-12 lg:col-span-9 space-y-4">
-          <div className={isDark?"bg-[#121c33] border border-white/10 rounded-[16px] p-4":"bg-white border border-slate-200 rounded-[16px] p-4"}>
+          <div className={`${isDark?"bg-[#121c33] border border-white/10 rounded-[16px] p-4":"bg-white border border-slate-200 rounded-[16px] p-4"} calendar-print-hide`}>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <h2 className="text-[18px] font-bold">{viewDate.toLocaleDateString('en-GB',{month:'long',year:'numeric'})}</h2>
-                <button onClick={()=>setViewDate(getShipTimeNow(timeSettings.gmtOffset, timeSettings.shipTimeEnabled))} className={`text-[11px] px-3 py-1 rounded-full border font-bold ${isDark?'bg-white/10 border-white/20 text-white':'bg-slate-100 border-slate-200 text-slate-700'}`}>Today</button>
+                <button onClick={()=>{
+                  const st=getShipTimeNow(timeSettings.gmtOffset, timeSettings.shipTimeEnabled);
+                  if(timeSettings.shipTimeEnabled){
+                    const iso = toISOFromUTC(st);
+                    const parsed = parseISO(iso);
+                    if(!isNaN(parsed.getTime())) setViewDate(parsed);
+                    else setViewDate(new Date());
+                  } else {
+                    setViewDate(st);
+                  }
+                }} className={`text-[11px] px-3 py-1 rounded-full border font-bold ${isDark?'bg-white/10 border-white/20 text-white':'bg-slate-100 border-slate-200 text-slate-700'}`}>Today</button>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={()=>setViewDate(new Date(viewDate.getFullYear(),viewDate.getMonth()-1,1))} className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer ${isDark?'bg-white/10 hover:bg-white/20 hover:text-white hover:scale-110 active:scale-95':'bg-slate-100 hover:bg-slate-200 hover:scale-110 active:scale-95'}`}>‹</button>
@@ -692,7 +899,7 @@ export default function App(){
                 const e=entries[iso];
                 const isCurrentMonth=d.getMonth()===viewDate.getMonth();
                 const shipToday = getShipTimeNow(timeSettings.gmtOffset, timeSettings.shipTimeEnabled);
-                const isToday=toISO(shipToday)===iso;
+                const isToday=(timeSettings.shipTimeEnabled ? toISOFromUTC(shipToday) : toISO(shipToday))===iso;
                 const isWeekend=d.getDay()===0||d.getDay()===6;
                 const holidayName = getHolidayName(iso) as string | undefined;
                 const isHoliday = !!holidayName;
@@ -733,7 +940,7 @@ export default function App(){
           <div className={isDark?"bg-[#121c33] border border-white/10 rounded-[16px] p-4":"bg-white border border-slate-200 rounded-[16px] p-4"}>
             <div className="flex items-center justify-start gap-3 mb-3">
               <div className="text-[12px] font-bold uppercase">Detailed Breakdown</div>
-              <div className="text-[12px] opacity-50 ml-4 md:ml-[180px]">{monthEntries.length}  entries • True 24h • Overnight support</div>
+              <div className="text-[12px] opacity-50 ml-4 md:ml-[180px]">{monthEntries.length} entries • True 24h • Overnight support</div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-[12px]">
@@ -772,15 +979,21 @@ export default function App(){
                         <td className={`py-2.5 px-1.5 w-[88px] font-mono font-bold text-center text-[12px] ${isHoliday?'text-red-500':''}`}>
                           <div>{e.date}</div>
                           <div className="text-[10px] opacity-50">{parseISO(e.date).toLocaleDateString('en-US',{weekday:'short'}).toUpperCase()}</div>
-                          </td>
+                        </td>
                         <td className="py-2.5 px-1.5 w-[68px] text-[13px] text-center">
-                          {String(e.location).trim()==='At Port' ? '📍 At Port' : String(e.location).trim()==='At Sea' ? '🌊 At Sea' : e.location}
-                          </td>
+                          <span className="no-print">
+                            {String(e.location).trim()==='At Port' ? '📍 ' : '🌊 '}
+                          </span>
+                          <span>{e.location}</span>
+                        </td>
                         <td className="py-2.5 px-3 w-[100px] text-center"><span className={`font-bold ${isDark?'text-white':'text-slate-900'}`} title={`Total Work: ${work.toFixed(1)}h`}>{reg.toFixed(1)}</span></td>
                         <td className="py-2.5 px-2 w-[54px] text-center"><span className="font-bold text-orange-400">{ot.toFixed(1)}</span></td>
                         <td className="py-2.5 px-2 w-[56px] text-center"><span className="font-bold text-emerald-400">{rest.toFixed(1)}</span></td>
                         <td className="py-2.5 px-3 min-w-[240px] max-w-[360px] text-[13px] leading-snug text-left break-words">
-                          {e.duty==='Rest Day'?'🌙 ':e.notes?.includes('Arrival')?'🚢 ':e.notes?.includes('Berthed')?'📍 ':e.notes?.includes('Departure')?'🛳️ ':e.notes?.includes('Enroute')?' ➡️ ':''}{e.notes}
+                          <span className="no-print">
+                            {e.duty==='Rest Day'?'🌙 ':e.notes?.includes('Arrival')?'🚢 ':e.notes?.includes('Berthed')?'📍 ':e.notes?.includes('Departure')?'🛳️ ':e.notes?.includes('Enroute')?' ➡️ ':''}
+                          </span>
+                          {e.notes}
                           {isHoliday && e.notes && <div className="text-[8px] text-red-400 mt-1">{holidayName}</div>}
                         </td>
                       </tr>
@@ -795,14 +1008,14 @@ export default function App(){
                     <td className="py-3.5 px-3 w-[100px] text-center"><span className={isDark?'text-white':'text-slate-900'}>{monthTotals.monthRegular.toFixed(1)}</span></td>
                     <td className="py-3.5 px-2 w-[64px] text-center"><span className="text-orange-400">{(monthTotals.monthOT + monthTotals.monthDouble).toFixed(1)}</span></td>
                     <td className="py-3.5 px-2 w-[64px] text-center"><span className="text-emerald-400">{monthTotals.monthRest.toFixed(1)}</span></td>
-                    <td className="py-3.5 pl-3 pr-3 text-[12px] font-bold">🕒 {monthTotals.totalWork.toFixed(1)}hrs Work Total</td>
+                    <td className="py-3.5 pl-3 pr-3 text-[12px] font-bold">
+                      <span className="no-print">🕒 </span>{monthTotals.totalWork.toFixed(1)}hrs Work Total
+                    </td>
                   </tr>
                 </tfoot>
-
               </table>
             </div>
           </div>
-
         </div>
       </main>
 
@@ -831,8 +1044,8 @@ export default function App(){
                 <div><label className="text-[11px] uppercase font-semibold opacity-70">👨‍✈️ Master&apos;s Name</label><input value={vesselInfo.masterName} onChange={e=>setVesselInfo({...vesselInfo,masterName:e.target.value})} placeholder="Capt. John Smith" className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[13px] font-bold ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`} /></div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label className="text-[11px] uppercase font-semibold opacity-70">Vessel Type</label><select value={vesselInfo.type} onChange={e=>setVesselInfo({...vesselInfo,type:e.target.value})} className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[13px] ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`}>{VESSEL_TYPES.map(t=><option key={t} value={t}>{t}</option>)}</select></div>
-                <div><label className="text-[11px] uppercase font-semibold opacity-70">Flag Registry</label><select value={vesselInfo.flag} onChange={e=>setVesselInfo({...vesselInfo,flag:e.target.value})} className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[13px] ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`}>{FLAG_REGISTRIES.map(f=><option key={f} value={f}>{f}</option>)}</select></div>
+                <div><label className="text-[11px] uppercase font-semibold opacity-70">Vessel Type</label><select value={vesselInfo.type} onChange={e=>setVesselInfo({...vesselInfo,type:e.target.value})} className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[13px] ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`}>{VESSEL_TYPES.map((t,i)=><option key={`${t}-${i}`} value={t}>{t||'Select Type'}</option>)}</select></div>
+                <div><label className="text-[11px] uppercase font-semibold opacity-70">Flag Registry</label><select value={vesselInfo.flag} onChange={e=>setVesselInfo({...vesselInfo,flag:e.target.value})} className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[13px] ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`}>{FLAG_REGISTRIES.map((f,i)=><option key={`${f}-${i}`} value={f}>{f||'Select Flag'}</option>)}</select></div>
               </div>
               <div><label className="text-[11px] uppercase font-semibold opacity-70">IMO Number</label><input value={vesselInfo.imo} onChange={e=>setVesselInfo({...vesselInfo,imo:e.target.value})} placeholder="IMO 999999" className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[13px] font-mono ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`} /></div>
             </div>
@@ -853,7 +1066,7 @@ export default function App(){
                 <div className="text-[11px] uppercase opacity-60">Log Day {isHolidayDate(editing.date)&&<span className="bg-red-500 text-white px-2 py-0.5 rounded-full ml-2">Holiday</span>}</div>
                 <div className="text-[18px] font-bold mt-1">{parseISO(editing.date).toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
                 <div className="grid grid-cols-2 gap-2 mt-3">
-                  <select value={editing.location} onChange={e=>{const newLoc=e.target.value as any; const auto=getAutoPortNote(editing.portName, editing.arrivalTime, editing.departureTime, newLoc); setEditing({...editing, location:newLoc, notes: auto ? auto : editing.notes});}} className="bg-white/10 border border-white/20 rounded-full px-3 py-2 text-[12px] text-white w-full truncate"><option className="text-black" value="At Sea">At Sea</option><option className="text-black" value="At Port">At Port</option></select>
+                  <select value={editing.location} onChange={e=>setEditing({...editing, location:e.target.value as any})} className="bg-white/10 border border-white/20 rounded-full px-3 py-2 text-[12px] text-white w-full truncate"><option className="text-black" value="At Sea">At Sea</option><option className="text-black" value="At Port">At Port</option></select>
                   <select value={editing.duty} onChange={e=>{const nd=e.target.value as any; if(nd==='Rest Day'){setEditing({...editing,duty:nd,breakdown:emptyBreakdown(),notes:editing.notes||'Rest Day - No Work (24h Rest)'});}else{setEditing({...editing,duty:nd});}}} className="bg-white/10 border border-white/20 rounded-full px-3 py-2 text-[12px] text-white w-full truncate"><option className="text-black" value="Regular Work">Regular Work</option><option className="text-black" value="Watch Duty">Watch Duty</option><option className="text-black" value="Standby / Extra">Standby / Extra</option><option className="text-black" value="Rest Day">🌙 No Work - Rest Day</option></select>
                   <select value={editing.watchSlot} onChange={e=>setEditing({...editing,watchSlot:e.target.value})} className="bg-[#f97316] text-white rounded-full px-3 py-2 text-[12px] font-semibold w-full col-span-2 truncate">{WATCH_SLOTS.map(s=><option key={s} value={s} className="text-black">{s}</option>)}</select>
                 </div>
@@ -868,14 +1081,13 @@ export default function App(){
                   </div>
                 ) : (
                 <>
-                {/* 5 Tabs for Mobile - horizontally scrollable */}
                 <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 snap-x scrollbar-hide" style={{scrollbarWidth:'none'}}>
                   {TASK_TABS.map(tab=>{
                     const count = BREAKDOWN_FIELDS.filter(f=>f.tab===tab.id).reduce((acc,f)=>acc+(editing.breakdown[f.key]||0),0);
                     const isActive = activeTaskTab===tab.id;
                     return (
-                      <button key={tab.id} onClick={()=>setActiveTaskTab(tab.id)} className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-[11px] font-bold whitespace-nowrap shrink-0 snap-start transition ${isActive?'bg-[#f97316] text-white shadow-md':'bg-black/5 dark:bg-white/10 text-slate-700 dark:text-slate-200'}`}>
-                        <span>{tab.icon}</span> {tab.label} {count>0 && <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-mono ${isActive?'bg-white text-[#f97316]':'bg-[#f97316] text-white'}`}>{count.toFixed(1)}h</span>}
+                      <button key={tab.id} onClick={()=>setActiveTaskTab(tab.id)} className={`flex items-center gap-2 px-2 py-2.5 rounded-full text-[13px] font-bold whitespace-nowrap shrink-0 snap-start transition ${isActive?'bg-[#f97316] text-white shadow-md':'bg-black/5 dark:bg-white/10 text-slate-700 dark:text-slate-200'}`}>
+                        <span>{tab.icon}</span> {tab.label} {count>0 && <span className={`px-1.5 py-0.5 rounded-full text-[13px] font-mono ${isActive?'bg-white text-[#f97316]':'bg-[#f97316] text-white'}`}>{count.toFixed(1)}h</span>}
                       </button>
                     );
                   })}
@@ -886,7 +1098,7 @@ export default function App(){
                     return (
                       <div key={f.key} className={`border rounded-[16px] p-3 flex flex-col justify-between ${isDark?'bg-[#0f172a] border-white/10':'bg-slate-50 border-slate-200'}`}>
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-[11px] font-semibold flex items-center gap-1.5 truncate">{f.key==='bridgeLookout' || f.key==='watch'?<ModernBinocularIcon />:<span>{f.icon}</span>}<span className="truncate">{f.label}</span></span>
+                          <span className="text-[13px] font-semibold truncate">{f.label}</span>
                           <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full shrink-0 ${val>0?'bg-[#f97316] text-white':'bg-black/10 opacity-60'}`}>{val.toFixed(1)}h</span>
                         </div>
                         <div className="mt-3 flex items-center justify-between gap-2 bg-black/5 dark:bg-white/5 rounded-full px-2 py-1.5">
@@ -904,10 +1116,10 @@ export default function App(){
                 <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className={`border rounded-[14px] p-4 ${isDark?'bg-[#0f172a] border-white/10':'bg-slate-50 border-slate-200'}`}>
                     <div className="text-[11px] uppercase opacity-90">Port & Times (True 24H)</div>
-                    <div className="mt-3"><label className="text-[10px] opacity-80">Port Name</label><input value={editing.portName} onChange={e=>{const pn=e.target.value; const auto=getAutoPortNote(pn, editing.arrivalTime, editing.departureTime, editing.location); setEditing({...editing, portName:pn, notes: auto ? (editing.notes? `${auto} • ${editing.notes}`.slice(0,200) : auto) : editing.notes});}} placeholder="Manila, PH" className={`mt-1 w-full border rounded-full px-4 py-2 text-[13px] ${isDark?'bg-white/5 border-white/10 text-white':'bg-white border-slate-200'}`} /></div>
+                    <div className="mt-3"><label className="text-[10px] opacity-80">Port Name</label><input value={editing.portName} onChange={e=>setEditing({...editing, portName:e.target.value})} placeholder="Manila, PH" className={`mt-1 w-full border rounded-full px-4 py-2 text-[13px] ${isDark?'bg-white/5 border-white/10 text-white':'bg-white border-slate-200'}`} /></div>
                     <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className={`border rounded-[10px] p-3 ${isDark?'bg-white/[0.03] border-white/10':'bg-white border-slate-200'}`}><label className="text-[10px] uppercase font-semibold opacity-90 flex items-center gap-1 whitespace-nowrap">🚢 Arrival Time <span className="bg-blue-500/20 text-green-400 px-1.5 py-0.5 rounded-full text-[8px]">24H</span></label><div className="mt-2"><Time24Input value={editing.arrivalTime} onChange={v=>{const auto=getAutoPortNote(editing.portName, v, editing.departureTime, editing.location); setEditing({...editing, arrivalTime:v, notes: auto ? auto : editing.notes});}} isDark={isDark} /></div><div className="mt-2 flex gap-1"><button onClick={()=>{const nv=format24H_HM(now24H); const auto=getAutoPortNote(editing.portName, nv, editing.departureTime, editing.location); setEditing({...editing,arrivalTime:nv, notes: auto ? auto : editing.notes});}} className={`text-[10px] px-2 py-1 rounded-full ${isDark?'bg-white text-black':'bg-slate-900 text-white'}`}>Now {format24H_HM(now24H)}H</button><button onClick={()=>{setEditing({...editing,arrivalTime:''});}} className={`text-[10px] border px-2 py-1 rounded-full ${isDark?'bg-white/10 border-white/20':'bg-slate-100 border-slate-200'}`}>Clear</button></div></div>
-                      <div className={`border rounded-[10px] p-3 ${isDark?'bg-white/[0.03] border-white/10':'bg-white border-slate-200'}`}><label className="text-[10px] uppercase font-semibold opacity-90 flex items-center gap-1 whitespace-nowrap">🛳️ Departure Time <span className="bg-blue-500/20 text-green-400 px-1.5 py-0.5 rounded-full text-[8px]">24H</span></label><div className="mt-2"><Time24Input value={editing.departureTime} onChange={v=>{const auto=getAutoPortNote(editing.portName, editing.arrivalTime, v, editing.location); setEditing({...editing, departureTime:v, notes: auto ? auto : editing.notes});}} isDark={isDark} /></div><div className="mt-2 flex gap-1"><button onClick={()=>{const nv=format24H_HM(now24H); const auto=getAutoPortNote(editing.portName, editing.arrivalTime, nv, editing.location); setEditing({...editing,departureTime:nv, notes: auto ? auto : editing.notes});}} className={`text-[10px] px-2 py-1 rounded-full ${isDark?'bg-white text-black':'bg-slate-900 text-white'}`}>Now {format24H_HM(now24H)}H</button><button onClick={()=>{setEditing({...editing,departureTime:'',});}} className={`text-[10px] border px-2 py-1 rounded-full ${isDark?'bg-white/10 border-white/20':'bg-slate-100 border-slate-200'}`}>Clear</button></div></div>
+                      <div className={`border rounded-[10px] p-3 ${isDark?'bg-white/[0.03] border-white/10':'bg-white border-slate-200'}`}><label className="text-[10px] uppercase font-semibold opacity-90 flex items-center gap-1 whitespace-nowrap">🚢 Arrival Time <span className="bg-blue-500/20 text-green-400 px-1.5 py-0.5 rounded-full text-[8px]">24H</span></label><div className="mt-2"><Time24Input value={editing.arrivalTime} onChange={v=>setEditing({...editing, arrivalTime:v})} isDark={isDark} /></div><div className="mt-2 flex gap-1"><button onClick={()=>{const nv=format24H_HM(now24H, timeSettings.shipTimeEnabled); setEditing({...editing,arrivalTime:nv});}} className={`text-[10px] px-2 py-1 rounded-full ${isDark?'bg-white text-black':'bg-slate-900 text-white'}`}>Now {format24H_HM(now24H, timeSettings.shipTimeEnabled)}H</button><button onClick={()=>{setEditing({...editing,arrivalTime:''});}} className={`text-[10px] border px-2 py-1 rounded-full ${isDark?'bg-white/10 border-white/20':'bg-slate-100 border-slate-200'}`}>Clear</button></div></div>
+                      <div className={`border rounded-[10px] p-3 ${isDark?'bg-white/[0.03] border-white/10':'bg-white border-slate-200'}`}><label className="text-[10px] uppercase font-semibold opacity-90 flex items-center gap-1 whitespace-nowrap">🛳️ Departure Time <span className="bg-blue-500/20 text-green-400 px-1.5 py-0.5 rounded-full text-[8px]">24H</span></label><div className="mt-2"><Time24Input value={editing.departureTime} onChange={v=>setEditing({...editing, departureTime:v})} isDark={isDark} /></div><div className="mt-2 flex gap-1"><button onClick={()=>{const nv=format24H_HM(now24H, timeSettings.shipTimeEnabled); setEditing({...editing,departureTime:nv});}} className={`text-[10px] px-2 py-1 rounded-full ${isDark?'bg-white text-black':'bg-slate-900 text-white'}`}>Now {format24H_HM(now24H, timeSettings.shipTimeEnabled)}H</button><button onClick={()=>{setEditing({...editing,departureTime:'',});}} className={`text-[10px] border px-2 py-1 rounded-full ${isDark?'bg-white/10 border-white/20':'bg-slate-100 border-slate-200'}`}>Clear</button></div></div>
                     </div>
                   </div>
                   <div className="space-y-3">
@@ -943,21 +1155,26 @@ export default function App(){
               <button onClick={()=>setShowTimeModal(false)} className={`w-8 h-8 rounded-full flex items-center justify-center ${isDark?'bg-white/10':'bg-slate-100'}`}>✕</button>
             </div>
             <div className="p-6 space-y-4">
-              <div>
-                <label className="text-[11px] uppercase font-semibold opacity-70">GMT Offset</label>
-                <select value={timeSettings.gmtOffset} onChange={e=>setTimeSettings({...timeSettings,gmtOffset:parseFloat(e.target.value)})} className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[13px] ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`}>
-                  {GMT_OFFSETS.map(o=><option key={o} value={o}>{formatGMT(o)} (GMT{o>=0?`+${o}`:o})</option>)}
-                </select>
-              </div>
               <div className="flex items-center justify-between border rounded-[12px] p-4">
                 <div><div className="text-[13px] font-bold">Enable Ship Time</div><div className="text-[11px] opacity-60">Use GMT offset for all times</div></div>
                 <button onClick={()=>setTimeSettings({...timeSettings,shipTimeEnabled:!timeSettings.shipTimeEnabled})} className={`w-12 h-6 rounded-full p-1 transition ${timeSettings.shipTimeEnabled?'bg-[#f97316]':'bg-black/20'}`}><div className={`w-4 h-4 bg-white rounded-full transition ${timeSettings.shipTimeEnabled?'translate-x-6':'translate-x-0'}`} /></button>
+              </div>
+              <div>
+                <label className={`text-[11px] uppercase font-semibold transition ${!timeSettings.shipTimeEnabled ? 'opacity-30' : 'opacity-70'}`}>GMT Offset</label>
+                <select 
+                  disabled={!timeSettings.shipTimeEnabled}
+                  value={timeSettings.gmtOffset} 
+                  onChange={e=>setTimeSettings({...timeSettings,gmtOffset:parseFloat(e.target.value)})} 
+                  className={`mt-2 w-full px-4 py-3 rounded-[12px] border text-[13px] transition ${!timeSettings.shipTimeEnabled ? 'opacity-40 cursor-not-allowed bg-black/5 dark:bg-white/5' : ''} ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`}
+                >
+                  {GMT_OFFSETS.map(o=><option key={o} value={o}>{formatGMT(o)}{o===deviceGMTOffset?' • Device':''}</option>)}
+                </select>
               </div>
               <div className={`border rounded-[12px] p-4 ${isDark?'bg-[#0f172a] border-white/10':'bg-slate-50 border-slate-200'}`}>
                 <div className="text-[11px] uppercase opacity-60 mb-2">Preview</div>
                 <div className="grid grid-cols-2 gap-3">
                   <div><div className="text-[10px] uppercase opacity-50">Device Time</div><div className="text-[14px] font-mono font-bold mt-1">{format24H(new Date())}</div></div>
-                  <div><div className="text-[10px] uppercase opacity-50">Ship Time ({formatGMT(timeSettings.gmtOffset)})</div><div className="text-[14px] font-mono font-bold mt-1 text-[#f97316]">{format24H(getShipTimeNow(timeSettings.gmtOffset, true))}</div></div>
+                  <div><div className="text-[10px] uppercase opacity-50">Ship Time ({formatGMT(timeSettings.gmtOffset)})</div><div className={`text-[14px] font-mono font-bold mt-1 ${!timeSettings.shipTimeEnabled ? 'opacity-40' : 'text-[#f97316]'}`}>{format24H(getShipTimeNow(timeSettings.gmtOffset, timeSettings.shipTimeEnabled), timeSettings.shipTimeEnabled)}</div></div>
                 </div>
               </div>
             </div>
@@ -965,12 +1182,12 @@ export default function App(){
           </div>
         </div>
       )}
-                  {showShareModal && (
+
+      {showShareModal && (
         <div className="fixed inset-0 z-[100] flex items-start md:items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto" onClick={()=>setShowShareModal(false)}>
           <div className={`w-full max-w-[420px] rounded-[20px] shadow-2xl border my-4 md:my-8 max-h-[90vh] flex flex-col overflow-hidden ${isDark?'bg-[#121c33] border-white/10':'bg-white border-slate-200'}`} onClick={e=>e.stopPropagation()}>
             <div className={`px-6 py-4 flex items-center justify-between border-b shrink-0 ${isDark?'border-white/10':'border-slate-200'}`}>
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-[#0f172a] border border-white/10 rounded-[10px] flex items-center justify-center"><AnchorLogoIcon /></div>
                 <div>
                   <div className={`text-[14px] font-bold ${isDark?'text-white':'text-slate-900'}`}>Share SeaTime</div>
                   <div className="text-[10px] opacity-60">True 24H • DMW Rules</div>
@@ -991,7 +1208,7 @@ export default function App(){
                 <button onClick={async()=>{try{await navigator.clipboard.writeText('https://seafarer-tracker.vercel.app/'); alert('Link copied!');}catch{prompt('Copy link:','https://seafarer-tracker.vercel.app/');}}} title="Copy link" className="text-[11px] bg-white text-black rounded-full px-3 py-1 font-bold">Copy</button>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <button onClick={()=>{const qrUrl=`https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent('https://seafarer-tracker.vercel.app/')}`; const a=document.createElement('a'); a.href=qrUrl; a.download='seatime-qrcode.png'; a.target='_blank'; a.click();}} className="flex flex-col items-center gap-2 border rounded-[14px] p-4 hover:bg-white/5 transition group">
+                <button onClick={async()=>{const qrUrl=`https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent('https://seafarer-tracker.vercel.app/')}`; try{const res=await fetch(qrUrl); const blob=await res.blob(); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='seatime-qrcode.png'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);}catch{window.open(qrUrl,'_blank');}}} className="flex flex-col items-center gap-2 border rounded-[14px] p-4 hover:bg-white/5 transition group">
                   <div className="w-10 h-10 bg-emerald-500/20 border border-emerald-500/30 rounded-full flex items-center justify-center text-[18px] group-hover:bg-emerald-500 group-hover:text-white transition">💾</div>
                   <div className={`text-[11px] font-bold ${isDark?'text-white':'text-slate-900'}`}>Save to Device</div>
                   <div className="text-[9px] opacity-50 text-center">Download QR as PNG</div>
@@ -1020,7 +1237,6 @@ export default function App(){
           </div>
         </div>
       </footer>
-
     </div>
   );
 }
