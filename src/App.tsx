@@ -102,7 +102,7 @@ type Entry = {
 type Rank = 'Master / Captain' | 'Chief Mate / Chief Officer' | 'Second Mate / Second Officer' | 'Third Mate / Third Officer' | 'Deck Cadet' | 'Bosun / Boatswain' | 'Able Seaman (AB)' | 'Ordinary Seaman (OS)' | 'Chief Engineer' | 'Second Engineer' | 'Third Engineer' | 'Fourth Engineer' | 'Electrical Officer (ETO)' | 'Fitter' | 'Oiler / Motorman' | 'Wiper' | 'Engine Cadet' | 'Chief Steward' | 'Chief Cook' | 'Second Cook' | 'Messman' | 'Steward / Utility';
 type Department = 'Deck' | 'Engine' | 'Galley';
 type VesselInfo = { name: string; type: string; imo: string; flag: string; masterName: string; };
-type SeafarerInfo = { name: string; employeeNo: string; department: Department; };
+type SeafarerInfo = { name: string; sirbNo: string; department: Department; };
 type TimeSettings = { gmtOffset: number; shipTimeEnabled: boolean; label: string; autoSyncDevice: boolean; };
 
 function getDeviceGMTOffset(){
@@ -357,7 +357,7 @@ export default function App(){
   const deviceTimeZone = getDeviceTimeZone();
   const [viewDate,setViewDate]=useState(()=>new Date());
   const [showTimeModal,setShowTimeModal]=useState(false);
-  const [seafarerInfo,setSeafarerInfo]=useState<SeafarerInfo>(()=>{try{if(typeof window!=='undefined'){const s=localStorage.getItem('seatime-seafarer');if(s){const parsed=JSON.parse(s); return {name:parsed.name||'',employeeNo:parsed.employeeNo||'',department:parsed.department||'Deck'};}}}catch{}return {name:'',employeeNo:'',department:'Deck'};});
+  const [seafarerInfo,setSeafarerInfo]=useState<SeafarerInfo>(()=>{try{if(typeof window!=='undefined'){const s=localStorage.getItem('seatime-seafarer');if(s){const parsed=JSON.parse(s); return {name:parsed.name||'',sirbNo:parsed.sirbNo||'',department:parsed.department||'Deck'};}}}catch{}return {name:'',sirbNo:'',department:'Deck'};});
   const [vesselInfo,setVesselInfo]=useState<VesselInfo>(()=>{try{if(typeof window!=='undefined'){const s=localStorage.getItem('seatime-vessel');if(s){const parsed=JSON.parse(s); return {name:parsed.name||'',type:parsed.type||'',imo:parsed.imo||'',flag:parsed.flag||'',masterName:parsed.masterName||''};}}}catch{}return {name:'',type:'',imo:'',flag:'',masterName:''};});
   const [showVesselModal,setShowVesselModal]=useState(false);
   const [showShareModal,setShowShareModal]=useState(false);
@@ -642,7 +642,7 @@ export default function App(){
               <div className="text-[8px] uppercase font-black text-black tracking-widest">Seafarer Details</div>
               <div className="text-[13px] font-black text-black mt-1 uppercase">{seafarerInfo.name || 'NOT SET'}</div>
               <div className="text-[11px] font-bold text-black mt-1">{userRank ? `${getRankAbbr(userRank)} - ${userRank}` : 'Rank: Not Set'}</div>
-              <div className="text-[10px] font-bold text-black">Dept: {seafarerInfo.department} • Emp No: {seafarerInfo.employeeNo || '-'}</div>
+              <div className="text-[10px] font-bold text-black">Dept: {seafarerInfo.department} • Emp No: {seafarerInfo.sirbNo || '-'}</div>
             </div>
             <div className="p-3 border-r-2 border-black bg-white">
               <div className="text-[8px] uppercase font-black text-black tracking-widest">Vessel Details</div>
@@ -652,7 +652,7 @@ export default function App(){
             </div>
             <div className="p-3 bg-slate-50">
               <div className="text-[8px] uppercase font-black text-black tracking-widest">Master & Voyage</div>
-              <div className="text-[13px] font-black text-black mt-1 uppercase">{vesselInfo.masterName || 'MASTER NAME'}</div>
+              <div className="text-[13px] font-black text-black mt-1 uppercase">{vesselInfo.masterName || "MASTER'S NAME"}</div>
               <div className="text-[10px] font-bold text-black mt-1">Period: {viewDate.toLocaleDateString('en-GB',{month:'long',year:'numeric'})}</div>
               <div className="text-[10px] font-bold text-black">Entries: {monthEntries.length} • Total Work: {monthTotals.totalWork.toFixed(1)}h • Rest: {monthTotals.monthRest.toFixed(1)}h</div>
             </div>
@@ -677,7 +677,7 @@ export default function App(){
             </div>
           </div>
 
-          <button onClick={()=>setShowTimeModal(true)} className="flex items-center gap-1 bg-white/10 border border-white/20 rounded-full px-2 md:px-[10px] h-[22px] md:h-[20px] text-white shrink-0 whitespace-nowrap hover:bg-white/20 transition" title={timeSettings.autoSyncDevice ? `Synced to device ${formatGMT(deviceGMTOffset)} ${deviceTimeZone}` : `Ship Time ${formatGMT(timeSettings.gmtOffset)} - Click to change`}>
+          <button onClick={()=>setShowTimeModal(true)} className="flex items-center gap-1 bg-white/10 border border-white/20 rounded-full px-2 md:px-[10px] h-[22px] md:h-[20px] text-white shrink-0 whitespace-nowrap hover:bg-white/20 transition" title={timeSettings.autoSyncDevice ? `Synced to device ${formatGMT(deviceGMTOffset)} ${deviceTimeZone}` : `Ship's Time ${formatGMT(timeSettings.gmtOffset)} - Click to change`}>
             <span className="text-[13px] font-mono font-bold">{format24H(now24H, timeSettings.shipTimeEnabled)}</span><sup className="text-[10px] opacity-60 ml-0.5 -top-0.5">24H</sup>
             {timeSettings.autoSyncDevice && <span className="text-[8px] ml-1 bg-emerald-500 px-1 py-0.5 rounded-full">AUTO</span>}
           </button>
@@ -760,8 +760,8 @@ export default function App(){
                 <span>✅ App Installed</span>
               </div>
             )}
-            <button onClick={()=>{setShowTimeModal(true); setShowSidebar(false);}} className={`w-full text-left px-3 py-2.5 rounded-[14px] font-bold text-[14px] cursor-pointer block ${isDark?'bg-white/10':'bg-slate-100'}`}>🕒 Ship Time / GMT</button>
-            <button onClick={()=>{if(window.confirm('Clear ALL data? Export first!')){ setEntries({}); setVesselInfo({name:'',type:'',imo:'',flag:'',masterName:''}); setSeafarerInfo({name:'',employeeNo:'',department:'Deck'}); setUserRank(''); try{if(typeof window!=='undefined'){localStorage.removeItem('seatime-entries'); localStorage.removeItem('seatime-vessel'); localStorage.removeItem('seatime-seafarer'); localStorage.removeItem('seatime-rank');}}catch{} alert('All data cleared!'); setShowSidebar(false); }}} className="w-full text-left px-3 py-2.5 rounded-[14px] font-bold text-[14px] cursor-pointer block bg-red-500/20 border border-red-500/30 text-red-400">🗑️ Clear All</button>
+            <button onClick={()=>{setShowTimeModal(true); setShowSidebar(false);}} className={`w-full text-left px-3 py-2.5 rounded-[14px] font-bold text-[14px] cursor-pointer block ${isDark?'bg-white/10':'bg-slate-100'}`}>🕒 Ship's Time / GMT</button>
+            <button onClick={()=>{if(window.confirm('Clear ALL data? Export first!')){ setEntries({}); setVesselInfo({name:'',type:'',imo:'',flag:'',masterName:''}); setSeafarerInfo({name:'',sirbNo:'',department:'Deck'}); setUserRank(''); try{if(typeof window!=='undefined'){localStorage.removeItem('seatime-entries'); localStorage.removeItem('seatime-vessel'); localStorage.removeItem('seatime-seafarer'); localStorage.removeItem('seatime-rank');}}catch{} alert('All data cleared!'); setShowSidebar(false); }}} className="w-full text-left px-3 py-2.5 rounded-[14px] font-bold text-[14px] cursor-pointer block bg-red-500/20 border border-red-500/30 text-red-400">🗑️ Clear All</button>
           </div>
         </>
       )}
@@ -772,7 +772,7 @@ export default function App(){
           <div><div className="text-[11px] uppercase opacity-50">Vessel Name</div><div className={`mt-1 w-full text-left border rounded-[10px] px-3 py-2 text-[13px] font-bold hover:opacity-80 ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.name || 'Vessel Name'}</div></div>
           <div><div className="text-[11px] uppercase opacity-50">IMO</div><div className={`mt-1 border rounded-[10px] px-3 py-2 text-[13px] font-mono ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.imo || 'IMO Number'}</div></div>
           <div><div className="text-[11px] uppercase opacity-50">Flag</div><div className={`mt-1 border rounded-[10px] px-3 py-2 text-[13px] ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.flag || 'Flag Registry'}</div></div>
-          <div><div className="text-[11px] uppercase opacity-50">Master</div><div className={`mt-1 border rounded-[10px] px-3 py-2 text-[13px] font-bold truncate ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.masterName || 'Master Name'}</div></div>
+          <div><div className="text-[11px] uppercase opacity-50">Master</div><div className={`mt-1 border rounded-[10px] px-3 py-2 text-[13px] font-bold truncate ${isDark?'bg-white/[0.04] border-white/10':'bg-slate-50 border-slate-200'}`}>{vesselInfo.masterName || "Master's Name"}</div></div>
         </div>
       </div>
 
@@ -1032,7 +1032,7 @@ export default function App(){
                 <label className="text-[11px] uppercase font-semibold text-orange-600">👤 Seafarer Information</label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
                   <div><label className="text-[10px] opacity-60">Full Name</label><input value={seafarerInfo.name} onChange={e=>setSeafarerInfo({...seafarerInfo,name:e.target.value})} placeholder="e.g., Juan Dela Cruz" className={`mt-1 w-full px-4 py-2.5 rounded-[12px] border text-[13px] font-bold ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`} /></div>
-                  <div><label className="text-[10px] opacity-60">Employee No.</label><input value={seafarerInfo.employeeNo} onChange={e=>setSeafarerInfo({...seafarerInfo,employeeNo:e.target.value})} placeholder="123456" className={`mt-1 w-full px-4 py-2.5 rounded-[12px] border text-[13px] font-mono ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`} /></div>
+                  <div><label className="text-[10px] opacity-60">SIRB No.</label><input value={seafarerInfo.sirbNo} onChange={e=>setSeafarerInfo({...seafarerInfo,sirbNo:e.target.value})} placeholder="999999" className={`mt-1 w-full px-4 py-2.5 rounded-[12px] border text-[13px] font-mono ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`} /></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
                   <div><label className="text-[10px] opacity-60">Department</label><select value={seafarerInfo.department} onChange={e=>setSeafarerInfo({...seafarerInfo,department:e.target.value as Department})} className={`mt-1 w-full px-4 py-2.5 rounded-[12px] border text-[13px] font-bold ${isDark?'bg-[#0f172a] border-white/10 text-white':'bg-slate-50 border-slate-200'}`}><option value="Deck">⚓ Deck Department</option><option value="Engine">⚙️ Engine Department</option><option value="Galley">🍳 Galley / Catering</option></select></div>
@@ -1151,12 +1151,12 @@ export default function App(){
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={()=>setShowTimeModal(false)} />
           <div className={`relative w-full md:max-w-[420px] rounded-t-[24px] md:rounded-[24px] shadow-2xl max-h-[90vh] overflow-auto border ${isDark?'bg-[#121c33] border-white/10':'bg-white border-slate-200'}`}>
             <div className={`sticky top-0 border-b px-6 py-5 flex items-center justify-between ${isDark?'bg-[#121c33] border-white/10':'bg-white border-slate-200'}`}>
-              <div><div className="text-[18px] font-bold">🕒 Ship Time Settings</div><div className="text-[11px] opacity-50">GMT Offset • True 24H • DMW Rules</div></div>
+              <div><div className="text-[18px] font-bold">🕒 Ship's Time Settings</div><div className="text-[11px] opacity-50">GMT Offset • True 24H • DMW Rules</div></div>
               <button onClick={()=>setShowTimeModal(false)} className={`w-8 h-8 rounded-full flex items-center justify-center ${isDark?'bg-white/10':'bg-slate-100'}`}>✕</button>
             </div>
             <div className="p-6 space-y-4">
               <div className="flex items-center justify-between border rounded-[12px] p-4">
-                <div><div className="text-[13px] font-bold">Enable Ship Time</div><div className="text-[11px] opacity-60">Use GMT offset for all times</div></div>
+                <div><div className="text-[13px] font-bold">Enable Ship's Time</div><div className="text-[11px] opacity-60">Use GMT offset for all times</div></div>
                 <button onClick={()=>setTimeSettings({...timeSettings,shipTimeEnabled:!timeSettings.shipTimeEnabled})} className={`w-12 h-6 rounded-full p-1 transition ${timeSettings.shipTimeEnabled?'bg-[#f97316]':'bg-black/20'}`}><div className={`w-4 h-4 bg-white rounded-full transition ${timeSettings.shipTimeEnabled?'translate-x-6':'translate-x-0'}`} /></button>
               </div>
               <div>
@@ -1174,7 +1174,7 @@ export default function App(){
                 <div className="text-[11px] uppercase opacity-60 mb-2">Preview</div>
                 <div className="grid grid-cols-2 gap-3">
                   <div><div className="text-[10px] uppercase opacity-50">Device Time</div><div className="text-[14px] font-mono font-bold mt-1">{format24H(new Date())}</div></div>
-                  <div><div className="text-[10px] uppercase opacity-50">Ship Time ({formatGMT(timeSettings.gmtOffset)})</div><div className={`text-[14px] font-mono font-bold mt-1 ${!timeSettings.shipTimeEnabled ? 'opacity-40' : 'text-[#f97316]'}`}>{format24H(getShipTimeNow(timeSettings.gmtOffset, timeSettings.shipTimeEnabled), timeSettings.shipTimeEnabled)}</div></div>
+                  <div><div className="text-[10px] uppercase opacity-50">Ship's Time ({formatGMT(timeSettings.gmtOffset)})</div><div className={`text-[14px] font-mono font-bold mt-1 ${!timeSettings.shipTimeEnabled ? 'opacity-40' : 'text-[#f97316]'}`}>{format24H(getShipTimeNow(timeSettings.gmtOffset, timeSettings.shipTimeEnabled), timeSettings.shipTimeEnabled)}</div></div>
                 </div>
               </div>
             </div>
