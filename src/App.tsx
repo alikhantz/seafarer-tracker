@@ -670,7 +670,7 @@ export default function App(){
         <div className="max-w-[1600px] mx-auto px-3 md:px-6 py-2 md:py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 md:gap-3">
             <button onClick={()=>setShowSidebar(true)} className="h-8 w-8 flex items-center justify-center text-[14px] bg-white/10 border border-white/20 rounded-full text-white cursor-pointer">☰</button>
-            <img src="/icon-172.png" alt="SeaTime" className="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover border border-white/10" />
+            <img src="/icon-192.png" alt="SeaTime" className="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover border border-white/10" />
             <div>
               <div className="text-[20px] font-bold leading-none tracking-wide text-white">SEATIME</div>
               <div className="text-[12px] opacity-50 uppercase text-white leading-none hidden md:block">Detailed Breakdown Tracker • TRUE 24H • DMW 40h/week</div>
