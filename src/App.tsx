@@ -99,7 +99,7 @@ type Entry = {
   watchSlot: string; notes: string; date: string;
   portName: string; arrivalTime: string; departureTime: string;
 };
-type Rank = 'Master / Captain' | 'Chief Mate / Chief Officer' | 'Second Mate / Second Officer' | 'Third Mate / Third Officer' | 'Deck Cadet' | 'Bosun / Boatswain' | 'Able Seaman (AB)' | 'Ordinary Seaman (OS)' | 'Chief Engineer' | 'Second Engineer' | 'Third Engineer' | 'Fourth Engineer' | 'Electrical Officer (ETO)' | 'Fitter' | 'Oiler / Motorman' | 'Wiper' | 'Engine Cadet' | 'Chief Steward' | 'Chief Cook' | 'Second Cook' | 'Messman' | 'Steward / Utility';
+type Rank = 'Master / Captain' | 'Chief Mate / Chief Officer' | 'Second Mate / Second Officer' | 'Third Mate / Third Officer' | 'Deck Cadet' | 'Bosun / Boatswain' | 'Able Seaman (AB)' | 'Ordinary Seaman (OS)' | 'Chief Engineer' | 'Second Engineer' | 'Third Engineer' | 'Fourth Engineer' | 'Electrical Officer (ETO)' | 'Fitter' | 'Oiler / Motorman' | 'Wiper' | 'Engine / Elect Cadet' | 'Chief Steward' | 'Chief Cook' | 'Second Cook' | 'Messman' | 'Steward / Utility';
 type Department = 'Deck' | 'Engine' | 'Galley';
 type VesselInfo = { name: string; type: string; imo: string; flag: string; masterName: string; };
 type SeafarerInfo = { name: string; employeeNo: string; department: Department; };
@@ -115,8 +115,8 @@ function getDeviceTimeZone(){
 const VESSEL_TYPES = ['','Container Ship','Bulk Carrier','Oil Tanker','Chemical Tanker','LNG Carrier','LPG Carrier','General Cargo','Ro-Ro / Vehicle Carrier','Passenger / Cruise','Offshore Supply Vessel','Tug Boat','Fishing Vessel','Other'];
 const FLAG_REGISTRIES = ['','Panama','Liberia','Marshall Islands','Hong Kong','Singapore','Malta','Bahamas','Greece','Japan','China','Philippines','USA','UK','Norway','Denmark','Germany','Italy','South Korea','Cyprus','Isle of Man','Other'];
 const RANKS: { label: string, dept: 'Deck'|'Engine'|'Galley', icon: string }[] = [
-  { label: 'Master / Captain', dept: 'Deck', icon: '👨‍✈️' },{ label: 'Chief Mate / Chief Officer', dept: 'Deck', icon: '🧭' },{ label: 'Second Mate / Second Officer', dept: 'Deck', icon: '🗺️' },{ label: 'Third Mate / Third Officer', dept: 'Deck', icon: '📡' },{ label: 'Deck Cadet', dept: 'Deck', icon: '🎓' },{ label: 'Bosun / Boatswain', dept: 'Deck', icon: '🪢' },{ label: 'Able Seaman (AB)', dept: 'Deck', icon: '🛞' },{ label: 'Ordinary Seaman (OS)', dept: 'Deck', icon: '⚓' },
-  { label: 'Chief Engineer', dept: 'Engine', icon: '⚙️' },{ label: 'Second Engineer', dept: 'Engine', icon: '🔧' },{ label: 'Third Engineer', dept: 'Engine', icon: '🔩' },{ label: 'Fourth Engineer', dept: 'Engine', icon: '🛠️' },{ label: 'Electrical Officer (ETO)', dept: 'Engine', icon: '💡' },{ label: 'Fitter', dept: 'Engine', icon: '🔨' },{ label: 'Oiler / Motorman', dept: 'Engine', icon: '⛽' },{ label: 'Wiper', dept: 'Engine', icon: '🧹' },{ label: 'Engine Cadet', dept: 'Engine', icon: '🎓' },
+  { label: 'Master / Captain', dept: 'Deck', icon: '👨‍✈️' },{ label: 'Chief Mate / Chief Officer', dept: 'Deck', icon: '🧭' },{ label: 'Second Mate / Second Officer', dept: 'Deck', icon: '🗺️' },{ label: 'Third Mate / Third Officer', dept: 'Deck', icon: '📡' },{ label: 'Deck Cadet', dept: 'Deck', icon: '🎓' },{ label: 'Bosun / Boatswain', dept: 'Deck', icon: '🪢' },{ label: 'Able Seaman (AB)', dept: 'Deck', icon: '☸️' },{ label: 'Ordinary Seaman (OS)', dept: 'Deck', icon: '⚓' },
+  { label: 'Chief Engineer', dept: 'Engine', icon: '⚙️' },{ label: 'Second Engineer', dept: 'Engine', icon: '🔧' },{ label: 'Third Engineer', dept: 'Engine', icon: '🔩' },{ label: 'Fourth Engineer', dept: 'Engine', icon: '🛠️' },{ label: 'Electrical Officer (ETO)', dept: 'Engine', icon: '💡' },{ label: 'Fitter', dept: 'Engine', icon: '🔨' },{ label: 'Oiler / Motorman', dept: 'Engine', icon: '⛽' },{ label: 'Wiper', dept: 'Engine', icon: '🧹' },{ label: 'Engine / Elect Cadet', dept: 'Engine', icon: '🎓' },
   { label: 'Chief Steward', dept: 'Galley', icon: '👨‍🍳' },{ label: 'Chief Cook', dept: 'Galley', icon: '🍳' },{ label: 'Second Cook', dept: 'Galley', icon: '🥘' },{ label: 'Messman', dept: 'Galley', icon: '🍽️' },{ label: 'Steward / Utility', dept: 'Galley', icon: '🧼' },
 ];
 
@@ -137,7 +137,7 @@ const RANK_ABBR: Record<string,string> = {
   'Fitter': 'FIT',
   'Oiler / Motorman': 'OLR',
   'Wiper': 'WPR',
-  'Engine Cadet': 'E-CDT',
+  'Engine / Elect Cadet': 'E-CDT',
   'Chief Steward': 'C-STWD',
   'Chief Cook': 'C-CK',
   'Second Cook': '2-CK',
